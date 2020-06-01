@@ -1,5 +1,5 @@
+using LinearAlgebra
 module CleanCMB
-
-# Write your package code here.
-
+export harmonic_ilc_weight, harmonic_ilc_clean_cl
+include("harmonic_ilc.jl")
 end

@@ -3,6 +3,9 @@ uuid = "ac0b1562-2dd8-4098-9314-fd6453e26fc8"
 authors = ["Eiichiro Komatsu <eiichirokomatsu@me.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
 [compat]
 julia = "1"
 
