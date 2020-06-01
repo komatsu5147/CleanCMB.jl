@@ -1,0 +1,13 @@
+name = "CleanCMB"
+uuid = "ac0b1562-2dd8-4098-9314-fd6453e26fc8"
+authors = ["Eiichiro Komatsu <eiichirokomatsu@me.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
