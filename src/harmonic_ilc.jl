@@ -1,12 +1,12 @@
 """
     harmonic_ilc_weight(cij)
 
-This function returns weights (a vector of the number of frequency channels) of the harmonic ILC method for a given multipole or band power bin.
+This function returns weights (a vector of the number of frequency channels) of the harmonic ILC method for a given multipole or band-power bin.
 
 *Reference*: Equation (12) of Tegmark et al., Phys. Rev. D, 68, 123523 (2003)
 
 # Arguments
-- `cij::Array{T,2}`: symmetric covariance matrix for a given multipole (or a band power bin) with the dimention of `(nν, nν)` where `nν` is the number of frequency bands.
+- `cij::Array{T,2}`: symmetric covariance matrix for a given multipole (or a band-power bin) with the dimention of `(nν, nν)` where `nν` is the number of frequency bands.
 """
 function harmonic_ilc_weight(cij::Array{T,2}) where {T<:AbstractFloat}
     if size(cij)[1] ≠ size(cij)[2]
@@ -23,15 +23,15 @@ end
 """
     harmonic_ilc_weight(cijℓ[, ℓid=3])
 
-This function returns weights (a nν-by-nℓ matrix) of the harmonic ILC method. The first element is a frequency channel and the second element is a multipole or band power bin.
+This function returns weights (a nν-by-nℓ matrix) of the harmonic ILC method. The first element is a frequency channel and the second element is a multipole or band-power bin.
 
 *Reference*: Equation (12) of Tegmark et al., Phys. Rev. D, 68, 123523 (2003)
 
 # Arguments
-- `cijℓ::Array{T,3}`: symmetric covariance matrix with the dimention of `(nℓ, nν, nν)`, `(nν, nℓ, nν)` or `(nν, nν, nℓ)` (default) where `nν` is the number of frequency bands and `nℓ` is the number of multipoles or band power bins.
+- `cijℓ::Array{T,3}`: symmetric covariance matrix with the dimention of `(nℓ, nν, nν)`, `(nν, nℓ, nν)` or `(nν, nν, nℓ)` (default) where `nν` is the number of frequency bands and `nℓ` is the number of multipoles or band-power bins.
 
 # Optional Arguments
-- `ℓid::Integer=3`: location of the index for multipoles or band power bins. `ℓid=1` if `cijℓ[nℓ,nfreq,nfreq]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
+- `ℓid::Integer=3`: location of the index for multipoles or band-power bins. `ℓid=1` if `cijℓ[nℓ,nfreq,nfreq]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
 """
 function harmonic_ilc_weight(
     cijℓ::Array{T,3},
@@ -66,13 +66,13 @@ end
 """
     harmonic_ilc_clean_cl(cij, w)
 
-This function returns a cleaned CMB power spectrum at a given multipole or a band power bin.
+This function returns a cleaned CMB power spectrum at a given multipole or a band-power bin.
 
 *Reference*: Tegmark et al., Phys. Rev. D, 68, 123523 (2003)
 
 # Arguments
-- `cij::Array{T,2}`: symmetric covariance matrix for a given multipole (or a band power bin) with the dimention of `(nν, nν)` where `nν` is the number of frequency bands.
-- `w::Array{T,1}`: ILC weights for a given multipole (or a band power bin)
+- `cij::Array{T,2}`: symmetric covariance matrix for a given multipole (or a band-power bin) with the dimention of `(nν, nν)` where `nν` is the number of frequency bands.
+- `w::Array{T,1}`: ILC weights for a given multipole (or a band-power bin)
 """
 function harmonic_ilc_clean_cl(
     cij::Array{T,2},
@@ -91,16 +91,16 @@ end
 """
     harmonic_ilc_clean_cl(cijℓ, wℓ[, ℓid::Integer=3])
 
-This function returns a cleaned CMB power spectrum (a vector of the number of multipoles or band power bins).
+This function returns a cleaned CMB power spectrum (a vector of the number of multipoles or band-power bins).
 
 *Reference*: Tegmark et al., Phys. Rev. D, 68, 123523 (2003)
 
 # Arguments
-- `cijℓ::Array{T,3}`: symmetric covariance matrix with the dimention of `(nℓ, nν, nν)`, `(nν, nℓ, nν)` or `(nν, nν, nℓ)` (default) where `nν` is the number of frequency bands and `nℓ` is the number of multipoles or band power bins.
+- `cijℓ::Array{T,3}`: symmetric covariance matrix with the dimention of `(nℓ, nν, nν)`, `(nν, nℓ, nν)` or `(nν, nν, nℓ)` (default) where `nν` is the number of frequency bands and `nℓ` is the number of multipoles or band-power bins.
 - `wℓ::Array{T,2}`: ILC weights (a nν-by-nℓ matrix)
 
 # Optional Arguments
-- `ℓid::Integer=3`: location of the index for multipoles or band power bins. `ℓid=1` if `cijℓ[nℓ,nfreq,nfreq]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
+- `ℓid::Integer=3`: location of the index for multipoles or band-power bins. `ℓid=1` if `cijℓ[nℓ,nfreq,nfreq]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
 """
 function harmonic_ilc_clean_cl(
     cijℓ::Array{T,3},
