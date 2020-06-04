@@ -44,7 +44,7 @@ Here, `nν` is the number of frequency channels and `nℓ` is the number of elem
 - `b::Array{<:AbstractFloat,1}`: vector of the frequency response, for the component to be nulled.
 
 # Optional Arguments
-- `ℓid::Integer=3`: location of the index for the `nℓ` domain. `ℓid=1` if `cijℓ[nℓ,nfreq,nfreq]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
+- `ℓid::Integer=3`: location of the index for the `nℓ` domain. `ℓid=1` if `cijℓ[nℓ,nν,nν]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
 """
 function cilc_weights(
     cijℓ::Array{T,3},
@@ -112,7 +112,7 @@ This function returns a vector of the power of the extracted component, with ele
     - Here, `nν` is the number of frequency bands and `nℓ` is the number of elements in the relevant domain.
 
 # Optional Arguments
-- `ℓid::Integer=3`: location of the index for the `nℓ` domain. `ℓid=1` if `cijℓ[nℓ,nfreq,nfreq]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
+- `ℓid::Integer=3`: location of the index for the `nℓ` domain. `ℓid=1` if `cijℓ[nℓ,nν,nν]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
 """
 function cilc_clean_cij(
     cijℓ::Array{T,3},
