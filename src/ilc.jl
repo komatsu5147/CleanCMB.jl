@@ -29,7 +29,7 @@ This function returns weights (a vector of the number of frequency channels) of 
 
 # Arguments
 - `cij::Array{<:AbstractFloat,2}`: symmetric covariance matrix with the dimention of `(nν, nν)` where `nν` is the number of frequency bands.
-- `e::Array{<:AbstractFloat,1}`: vector of the frequency response. E.g., e=[1,...,1] for CMB.
+- `e::Array{<:AbstractFloat,1}`: vector of the frequency response. E.g., `e = [1,...,1]` for CMB.
 """
 function ilc_weights(cij::Array{T,2}, e::Array{T,1}) where {T<:AbstractFloat}
     if size(cij)[1] ≠ size(cij)[2]
@@ -99,7 +99,7 @@ Here, `nν` is the number of frequency channels and `nℓ` is the number of elem
 
 # Arguments
 - `cijℓ::Array{<:AbstractFloat,3}`: symmetric covariance matrix with the dimention of `(nℓ, nν, nν)`, `(nν, nℓ, nν)` or `(nν, nν, nℓ)` (default).
-- `e::Array{<:AbstractFloat,1}`: vector of the frequency response. E.g., e=[1,...,1] for CMB.
+- `e::Array{<:AbstractFloat,1}`: vector of the frequency response. E.g., `e = [1,...,1]` for CMB.
 
 # Optional Arguments
 - `ℓid::Integer=3`: location of the index for the `nℓ` domain. `ℓid=1` if `cijℓ[nℓ,nν,nν]`, `ℓid=2` if `cijℓ[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cijℓ[nν,nν,nℓ]`.
