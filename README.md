@@ -6,10 +6,12 @@ Different algorithms exist for extraction of clean maps of the CMB (as well as o
 
 ## Internal Linear Combination (ILC) Method
 - `ilc_weights(cij[, e, ℓid=3])`: return weights for the internal linear combination (ILC) method, following Equation (12) of [Tegmark et al., PRD, 68, 123523 (2003)](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.68.123523).
-- `cilc_weights(cij, a, b[, ℓid=3])`: return weights for the constrained internal linear combination (CILC) method, following Equation (20) of [Remazeilles, et al., MNRAS, 410, 2481 (2011)](https://academic.oup.com/mnras/article/410/4/2481/1007333).
-- `milca_weights(cij, a, B[, ℓid=3])`: return weights for the modified internal linear combination algorithm (MILCA) method, following Equation (15) of [Hurier, et al., A&A, 558, A118 (2013)](https://www.aanda.org/articles/aa/abs/2013/10/aa21891-13/aa21891-13.html).
+- `cilc_weights(cij, a, b[, ℓid=3])`: return weights for the constrained internal linear combination (CILC) method for two components, following Equation (20) of [Remazeilles, et al., MNRAS, 410, 2481 (2011)](https://academic.oup.com/mnras/article/410/4/2481/1007333).
+- `milca_weights(cij, a, B[, ℓid=3])`: return weights for the modified internal linear combination algorithm (MILCA) method (CILC for N components), following Equation (15) of [Hurier, et al., A&A, 558, A118 (2013)](https://www.aanda.org/articles/aa/abs/2013/10/aa21891-13/aa21891-13.html).
   - Note: These papers define weights in various domain, including harmonic, wavelet, and pixel domain. You can choose to work in any domain by supplying a covariance matrix `cij` in the appropriate domain.
-- `ilc_clean_cij(cij, w)`: return a covariance matrix multiplied by weights, `w' * cij * w`, with `w` returned by any of the above functions, e.g., `w = cilc_weights(cij, a, b)`. This would be a variance of the extracted component if `cij` were the same as that used in `ilc_weights()`, `cilc_weights()` or `milca_weights()`. On the other hand if, for example, `cij`, is a noise covariance matrix, this function returns the noise variance of the cleaned map for each multipole, band-power bin, pixel, etc.
+- `ilc_clean_cij(cij, w)`: return a covariance matrix multiplied by weights, `w' * cij * w`, with `w` returned by any of the above functions, e.g., `w = cilc_weights(cij, a, b)`.
+  - This would be a variance of the extracted component if `cij` were the same as that used in `ilc_weights()`, `cilc_weights()` or `milca_weights()`.
+  - If `cij` is a noise covariance matrix, this function returns the noise variance of the cleaned map for each multipole, band-power bin, pixel, etc.
 
 ### Arguments
 - `cij::Array{<:AbstractFloat,2}`: `nν`-by-`nν` symmetric covariance matrix, where `nν` is the number of frequency bands.
@@ -31,20 +33,20 @@ Different algorithms exist for extraction of clean maps of the CMB (as well as o
 - `nij::Array{<:AbstractFloat,2}`: `nν`-by-`nν` symmetric noise covariance matrix, where `nν` is the number of frequency bands.
 - `A::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the frequency response, for `nc` components in sky.
     - E.g., ``A = [a B]`` where `a = ones(nν)` for CMB and `B` is a `nν`-by-`nc-1` matrix for the frequency response of foreground components.
-- `d::Array{<:AbstractFloat,1}`: data vector. The number of elements is `nν`.
+- `d::Array{<:AbstractFloat,1}`: data vector for a given pixel (or any other appropriate domain). The number of elements is `nν`.
 
 ## Foreground models
 The package contains the following functions to return frequency dependence of foreground components:
-- `tsz(νGHz; units="cmb", Tcmb=2.725)`: Spectrum of the thermal Sunyaev-Zeldovich effect given in Equation (V) in Appendix of [Zeldovich, Sunyaev, Astrophys. Space Sci. 4, 301 (1969)](http://articles.adsabs.harvard.edu/pdf/1969Ap%26SS...4..301Z).
-- `dust1(νGHz; Td=19.6, βd=1.6, νd=353, units="cmb", Tcmb=2.725)`: Spectrum of 1-component modified black-body thermal dust emission. The output is normalized to unity at `νGHz = νd`.
-- `synch(νGHz; βs=-3, νs=23, Cs=0, νC=40, units="cmb", Tcmb=2.725)`: Spectrum of synchrotron emission. The output is normalized to unity at `νGHz = νs`.
+- `tsz(νGHz; units="cmb", Tcmb=2.7255)`: Spectrum of the thermal Sunyaev-Zeldovich effect given in Equation (V) in Appendix of [Zeldovich, Sunyaev, Astrophys. Space Sci. 4, 301 (1969)](http://articles.adsabs.harvard.edu/pdf/1969Ap%26SS...4..301Z).
+- `dust1(νGHz; Td=19.6, βd=1.6, νd=353, units="cmb", Tcmb=2.7255)`: Spectrum of 1-component modified black-body thermal dust emission. The output is normalized to unity at `νGHz = νd`.
+- `synch(νGHz; βs=-3, νs=23, Cs=0, νC=40, units="cmb", Tcmb=2.7255)`: Spectrum of synchrotron emission. The output is normalized to unity at `νGHz = νs`.
 
 ### Arguments
 - `νGHz::Real`: frequency in units of GHz.
 
 ### Optional keyword arguments
 - `units::String`: units of the spectrum. For Rayleigh-Jeans temperature (brightness temperature) units, set `units = "rj"`. The default is the CMB units.
-- `Tcmb::Real`: present-day temperature of the CMB in units of Kelvin. The default value is `2.725`.
+- `Tcmb::Real`: present-day temperature of the CMB in units of Kelvin. The default value is `2.7255`.
 - `Td::Real`: dust temperature. The default value is `19.6` (Kelvin).
 - `βd::Real`: dust emissivity index. The default value is `1.6`.
 - `νd::Real`: frequency at which the output dust spectrum is normalized to unity. The default value is `353` (GHz).

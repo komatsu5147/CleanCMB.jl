@@ -1,5 +1,5 @@
 """
-    tsz(νGHz; units = "cmb", Tcmb = 2.725)
+    tsz(νGHz; units = "cmb", Tcmb = 2.7255)
 
 Spectrum of the thermal Sunyaev-Zeldovich effect.
 
@@ -10,9 +10,9 @@ Spectrum of the thermal Sunyaev-Zeldovich effect.
 
 # Optional keyword arguments
 - `units::String="cmb"`: units of the spectrum. For Rayleigh-Jeans temperature (brightness temperature) units, `units = "rj"`. The default is the CMB units.
-- `Tcmb::Real=2.725`: present-day temperature of the CMB in units of Kelvin.
+- `Tcmb::Real=2.7255`: present-day temperature of the CMB in units of Kelvin.
 """
-function tsz(νGHz::Real; units = "cmb", Tcmb = 2.725)
+function tsz(νGHz::Real; units = "cmb", Tcmb = 2.7255)
     hp = 6.62607015e-34
     kB = 1.380649e-23
     x = hp * νGHz * 1e9 / kB / Tcmb
@@ -26,7 +26,7 @@ function tsz(νGHz::Real; units = "cmb", Tcmb = 2.725)
 end
 
 """
-    dust1(νGHz; Td = 19.6, βd = 1.6, νd = 353, units = "cmb", Tcmb = 2.725)
+    dust1(νGHz; Td = 19.6, βd = 1.6, νd = 353, units = "cmb", Tcmb = 2.7255)
 
 Spectrum of 1-component modified black-body thermal dust emission. The output is normalized to unity at `νGHz = νd`.
 
@@ -38,7 +38,7 @@ Spectrum of 1-component modified black-body thermal dust emission. The output is
 - `βd::Real=1.6`: dust emissivity index.
 - `νd::Real=353`: frequency at which the output is normalized to unity.
 - `units::String="cmb"`: units of the spectrum. For Rayleigh-Jeans temperature (brightness temperature) units, `units = "rj"`. The default is the CMB units.
-- `Tcmb::Real=2.725`: present-day temperature of the CMB in units of Kelvin.
+- `Tcmb::Real=2.7255`: present-day temperature of the CMB in units of Kelvin.
 """
 function dust1(
     νGHz::Real;
@@ -46,7 +46,7 @@ function dust1(
     βd = 1.6,
     νd = 353,
     units = "cmb",
-    Tcmb = 2.725,
+    Tcmb = 2.7255,
 )
     hp = 6.62607015e-34
     kB = 1.380649e-23
@@ -62,7 +62,7 @@ function dust1(
 end
 
 """
-    synch(νGHz; βs = -3, νs = 23, Cs = 0, νC = 40, units = "cmb", Tcmb = 2.725)
+    synch(νGHz; βs = -3, νs = 23, Cs = 0, νC = 40, units = "cmb", Tcmb = 2.7255)
 
 Spectrum of synchrotron emission. The output is normalized to unity at `νGHz = νs`.
 
@@ -75,7 +75,7 @@ Spectrum of synchrotron emission. The output is normalized to unity at `νGHz = 
 - `Cs::Real=0`: curvature of the synchrotron spectrum.
 - `νC::Real=40`: pivot frequency for curvature of the synchrotron spectrum.
 - `units::String="cmb"`: units of the spectrum. For Rayleigh-Jeans temperature (brightness temperature) units, `units = "rj"`. The default is the CMB units.
-- `Tcmb::Real=2.725`: present-day temperature of the CMB in units of Kelvin.
+- `Tcmb::Real=2.7255`: present-day temperature of the CMB in units of Kelvin.
 """
 function synch(
     νGHz::Real;
@@ -84,7 +84,7 @@ function synch(
     Cs = 0,
     νC = 40,
     units = "cmb",
-    Tcmb = 2.725,
+    Tcmb = 2.7255,
 )
     hp = 6.62607015e-34
     kB = 1.380649e-23

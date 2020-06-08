@@ -9,7 +9,7 @@ Profile likelihood for the frequency response vectors.
 - `nij::Array{<:AbstractFloat,2}`: symmetric noise covariance matrix with the dimention of `(nν, nν)` where `nν` is the number of frequency bands.
 - `A::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the frequency response, for `nc` components in sky.
     - E.g., ``A = [a B]`` where `a = ones(nν)` for CMB and `B` is a `nν`-by-`nc-1` matrix for the frequency response of foreground components.
-- `d::Array{<:AbstractFloat,1}`: data vector. The number of elements is `nν`.
+- `d::Array{<:AbstractFloat,1}`: data vector for a given pixel (or any other appropriate domain). The number of elements is `nν`.
 """
 function loglike_beta(
     nij::Array{T,2},
