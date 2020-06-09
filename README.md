@@ -58,3 +58,17 @@ The package contains the following functions to return frequency dependence of f
 ## Example Julia Codes
 - [examples/CleanWMAP.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/CleanWMAP.jl)
   - This code applies `ilc_weights()` in pixel domain to produce a clean map of CMB from the temperature maps of Wilkinson Microwave Anisotropy Probe (WMAP) at five frequency bands.
+  - The code requires [Healpix.jl](https://github.com/ziotom78/Healpix.jl).
+- [examples/ILCPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSAT.jl)
+  - This code applies `ilc_weights()` in harmonic domain to produce power spectra of clean polarisation maps of the CMB.
+  - The code requires [Healpix.jl](https://github.com/ziotom78/Healpix.jl) and [Libsharp.jl](https://github.com/ziotom78/Libsharp.jl). It also calls python wrappers [pymaster](https://github.com/LSSTDESC/NaMaster) and [classy](https://github.com/lesgourg/class_public/wiki/Python-wrapper) via `PyCall`.
+  - This is a simulation pipeline for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org). The code performs the following operations:
+    1. Read in and smooth foreground maps by beams of the telescope.
+    2. Generate theoretical scalar- and tensor-mode power spectra of the CMB using [CLASS](https://github.com/lesgourg/class_public).
+    3. Generate Gaussian random realisations of the CMB and noise.
+    4. Calculate covariance matrices `cij` of the CMB, noise, and foreground.
+    5. Calculate ILC weights in harmonic domain using `ilc_weights()`.
+    6. Calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
+    7. Show results for visual inspection, if `showresults = true`.
+    8. Calculate the tensor-to-scalar ratio and its uncertainty from the simulated realisations.
+    9. The results can be compared with the Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445), Table 4 ("ILC" column).
