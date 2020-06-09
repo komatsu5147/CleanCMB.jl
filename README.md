@@ -54,3 +54,7 @@ The package contains the following functions to return frequency dependence of f
 - `νs::Real`: frequency at which the output synchrotron spectrum is normalized to unity. The default is `23` (GHz).
 - `Cs::Real`: curvature of the synchrotron spectrum. The default value is `0`.
 - `νC::Real`: pivot frequency for curvature of the synchrotron spectrum. The default value is `40` (GHz).
+
+## Example Julia Codes
+- [examples/CleanWMAP.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/CleanWMAP.jl)
+  - This code applies `ilc_weights()` in pixel domain to produce a clean map of CMB from the temperature maps of Wilkinson Microwave Anisotropy Probe (WMAP) at five frequency bands.
