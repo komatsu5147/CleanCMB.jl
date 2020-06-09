@@ -6,8 +6,9 @@ using Printf
 using Plots, LaTeXStrings
 # %% Create figures?
 showresults = true
+
 # %% Simulation parameters
-nrz = 5 # How many realisations?
+nrz = 10 # How many realisations?
 Random.seed!(5147) # Initial random number seed
 rsim = 0 # Tensor-to-scalar ratio used for the simulation
 Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
@@ -191,7 +192,7 @@ function compute_master(f_a, f_b, wsp)
     return cl_decoupled
 end
 
-# %% Loop over realizations
+# %% Loop over realisations
 ee1, bb1 = zeros(nbands, nrz), zeros(nbands, nrz) # Cleaned power spectra
 ee2, bb2 = zeros(nbands, nrz), zeros(nbands, nrz) # Noise power spectra
 ee3, bb3 = zeros(nbands, nrz), zeros(nbands, nrz) # Residual foreground power spectra
@@ -354,7 +355,7 @@ for ib = 1:nbands
 end
 # Plot and save to "clbb_sim_sosat.pdf"
 if showresults
-    ii = findall(x -> x > ℓmin && x <= ℓmax, ell_eff)
+    ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
     p = scatter(
         ell_eff[ii],
         mb1[ii],
