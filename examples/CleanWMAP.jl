@@ -24,8 +24,7 @@ Tbar = zeros(nν)
 cij = zeros(nν, nν)
 clean_map = Map{Float64,RingOrder}(nside)
 for N = 0:11 # loop over ILC regions 0-11
-    println("Region: ", N)
-    set = (Int.(round.(bit)) .& 2^N) / 2^N # see https://lambda.gsfc.nasa.gov/product/map/dr5/ilc_map_get.cfm
+    set = (Int.(bit) .& 2^N) / 2^N # see https://lambda.gsfc.nasa.gov/product/map/dr5/ilc_map_get.cfm
     ip = findall(x -> x == 1, set)
     # Compute nν-by-nν covariance marix that will be used by `ilc_weights(cij)`
     for iν = 1:nν
@@ -36,7 +35,6 @@ for N = 0:11 # loop over ILC regions 0-11
             mean((map[iν][ip] .- Tbar[iν]) .* (map[jν][ip] .- Tbar[jν]))
     end
     weights = ilc_weights(cij) # Compute ILC weights
-    @show weights
     # Obtain a clean CMB map
     ip = findall(x -> x == N, rgn)
     for iν = 1:nν
@@ -44,6 +42,6 @@ for N = 0:11 # loop over ILC regions 0-11
     end
 end
 # %% Plot a clean CMB map and save to "ilc.png"
-p = plot(clean_map, clims = (-0.3, 0.3))
+p = plot(clean_map, clims = (-0.25, 0.25), c = :jet)
 savefig("ilc.png")
 display(p)
