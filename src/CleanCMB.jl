@@ -4,7 +4,7 @@ export ilc_weights, ilc_clean_cij
 export cilc_weights
 export milca_weights
 export tsz, dust1, synch
-export loglike_beta
+export loglike_beta, loglike_beta_deriv
 include("ilc.jl")
 include("cilc.jl")
 include("milca.jl")
