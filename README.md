@@ -28,11 +28,14 @@ Different algorithms exist for extraction of clean maps of the CMB (as well as o
 
 ## Parametric Maximum Likelihood Method
 - `loglike_beta(nij, A, d)`: return log(likelihood) for frequency response vectors `A` given a data vector `d`, using Equation (9) of [Stompor et al., MNRAS, 392, 216 (2009)](https://academic.oup.com/mnras/article/392/1/216/1071929).
+- `loglike_beta_deriv(nij, A, dAdβ, d)`: return the derivative of log(likelihood) with respect to a foreground parameter, using Equation (A1) of [Errard et al., PRD, 84, 063005 (2011)](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.84.063005). This function may be used to make the maximisation of `loglike_beta(nij, A, d)` more efficient.
 
 ### Arguments
 - `nij::Array{<:AbstractFloat,2}`: `nν`-by-`nν` symmetric noise covariance matrix, where `nν` is the number of frequency bands.
 - `A::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the frequency response, for `nc` components in sky.
     - E.g., ``A = [a B]`` where `a = ones(nν)` for CMB and `B` is a `nν`-by-`nc-1` matrix for the frequency response of foreground components.
+- `dAdβ::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the derivative of the frequency response with respect to a foreground parameter.
+    - E.g., ``dAdβ = [zeros(nν) dsynch/dβs zeros(nν)]`` where `zeros(nν)` for CMB and dust because they do not depend on the synchrotron index `βs`.
 - `d::Array{<:AbstractFloat,1}`: data vector for a given pixel (or any other appropriate domain). The number of elements is `nν`.
 
 ## Foreground models
@@ -71,6 +74,15 @@ The package contains the following functions to return frequency dependence of f
     6. Calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
     7. Show results for visual inspection, if `showresults = true`.
     8. Calculate the tensor-to-scalar ratio and its uncertainty from the simulated realisations.
-    9. Write out the results (tensor-to-scalar ratios with and without residual foreground marginalisation) to a file `ilc_results_sosat.csv` and create a PDF figure `clbb_sim_sosat.pdf` showing the cleaned B-mode power spectrum, minus noisebias, and minus the residual foreground.
+    9. Write out the results (tensor-to-scalar ratios with and without residual foreground marginalisation) to a file `ilc_results_sosat.csv` and create a PDF figure `ilc_clbb_sim_sosat.pdf` showing the cleaned B-mode power spectrum, minus noisebias, and minus the residual foreground.
   - For your reference, the results from 300 realisations are given in [results/ilc_results_sosat_300sims.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/ilc_results_sosat_300sims.csv). You can compute the mean and standard deviation of the tensor-to-scalar ratios and compare with the results given in Table 4 ("ILC" column) of Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445).
     - Without FG marginalisation: r = (2.0 ± 1.7) x 10<sup>-3</sup>. With marginalisation: r = (-0.9 ± 2.9) x 10<sup>-3</sup>.
+- [examples/MLPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MLPipelineSOSAT.jl)
+  - This code applies `loglike_beta()` in pixel domain to find the best-fitting synchrotron and dust spectral indices, calculates weights using the N-component constrained ILC `milca_weights(nij, ...)` with the noise covariance matrix `nij` instead of the total covariance matrix `cij`, and obtains power spectra of clean polarisation maps of the CMB with `ilc_clean_cij()`.
+  - This is also a simulation pipeline for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org). The code performs the same operations as above, except:
+    5. Calculate the best-fitting synchrotron and dust indices using `loglike_beta()`.
+    6. Calculate power spectra of the clean CMB maps using `milca_weights()` and `ilc_clean_cij()`.
+    
+<!--
+  - For your reference, the results from 300 realisations are given in [results/ml_results_sosat_300sims.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/ml_results_sosat_300sims.csv). *Note that the random number seeds are different from the ILC results.* You can compute the mean and standard deviation of the tensor-to-scalar ratios and compare with the results given in Table 4 ("xForecast" column) of Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445).
+-->
