@@ -82,7 +82,7 @@ The package contains the following functions to return frequency dependence of f
   - This is also a simulation pipeline for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org). The code performs the same operations as above, except:
     5. Calculate the best-fitting synchrotron and dust indices using `loglike_beta()`.
     6. Calculate power spectra of the clean CMB maps using `milca_weights()` and `ilc_clean_cij()`.
-    
+
 <!--
   - For your reference, the results from 300 realisations are given in [results/ml_results_sosat_300sims.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/ml_results_sosat_300sims.csv). *Note that the random number seeds are different from the ILC results.* You can compute the mean and standard deviation of the tensor-to-scalar ratios and compare with the results given in Table 4 ("xForecast" column) of Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445).
 -->
