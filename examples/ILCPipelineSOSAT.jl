@@ -24,8 +24,21 @@ uKarcmin = [35, 21, 2.6, 3.3, 6.3, 16] # in μK arcmin (for temperature; x√2 f
 lknee = [30, 30, 50, 50, 70, 100]
 αknee = [-2.4, -2.4, -2.5, -3, -3, -3]
 
+# %% Read in the hits map and calculate weights for inhomogeneous noise
+nhitsfile = "data/nhits_SAT_r7.FITS"
+nhits = readMapFromFITS(nhitsfile, 1, Float64)
+nside = nhits.resolution.nside
+nhits /= maximum(nhits)
+fsky = mean(nhits)^2 / mean(nhits .^ 2)
+K = √(mean(nhits) / fsky)
+weight = zeros(12 * nside^2)
+for ip = 1:12*nside^2
+    if nhits[ip] > 0
+        weight[ip] = K / √nhits[ip]
+    end
+end
+
 # %% Basic parameters for spherical harmonics transform
-nside = 128
 lmax, mmax = 3 * nside - 1, 3 * nside - 1
 geom_info = make_healpix_geom_info(nside, 1)
 alm_info = make_triangular_alm_info(lmax, mmax, 1)
@@ -140,19 +153,6 @@ end
 cosmo.set(params)
 cosmo.compute()
 clt = cosmo.raw_cl(lmax)
-
-# %% Read in the hits map and calculate weights for inhomogeneous noise
-nhitsfile = "data/nhits_SAT_r7.FITS"
-nhits = readMapFromFITS(nhitsfile, 1, Float64)
-nhits /= maximum(nhits)
-fsky = mean(nhits)^2 / mean(nhits .^ 2)
-K = √(mean(nhits) / fsky)
-weight = zeros(12 * nside^2)
-for ip = 1:12*nside^2
-    if nhits[ip] > 0
-        weight[ip] = K / √nhits[ip]
-    end
-end
 
 # %% Import NaMaster for the power spectrum analysis on a partial sky
 # Reference: Alonso et al.,  MNRAS, 484, 4127 (2019), https://github.com/LSSTDESC/NaMaster
