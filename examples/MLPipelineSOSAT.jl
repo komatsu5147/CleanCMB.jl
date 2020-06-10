@@ -376,8 +376,8 @@ for irz = 1:nrz
             return [-∇lnlike1, -∇lnlike2]
         end
     end
-    # res = optimize(func, [-3, 1.6])
-    res = optimize(func, ∇func, [-3, 1.6], inplace = false)
+    res = optimize(func, [-3, 1.6])
+    # res = optimize(func, ∇func, [-3, 1.6], inplace = false)
     @show res
     β = Optim.minimizer(res)
     ## Calculate weights to clean the E- and B-mode power spectra
