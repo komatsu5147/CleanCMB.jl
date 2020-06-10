@@ -25,7 +25,7 @@ function milca_weights(
     e = zeros(size(B)[2] + 1)
     e[1] = 1
     F = [a B]
-    w = e' * inv(F' * inv(M) * F) * F' * inv(M)
+    w = inv(M) * F * inv(F' * inv(M) * F) * e
 end
 
 """
@@ -76,7 +76,7 @@ function milca_weights(
         else
             M = Symmetric(cijℓ[iℓ, :, :])
         end
-        wℓ[:, iℓ] = e' * inv(F' * inv(M) * F) * F' * inv(M)
+        wℓ[:, iℓ] = inv(M) * F * inv(F' * inv(M) * F) * e
     end
     return wℓ
 end
