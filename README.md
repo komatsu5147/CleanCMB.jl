@@ -80,6 +80,7 @@ The package contains the following functions to return frequency dependence of f
 - [examples/MLPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MLPipelineSOSAT.jl)
   - This code applies `loglike_beta()` in pixel domain to find the best-fitting synchrotron and dust spectral indices, calculates weights using the N-component constrained ILC `milca_weights(nij, ...)` with the noise covariance matrix `nij` instead of the total covariance matrix `cij`, and obtains power spectra of clean polarisation maps of the CMB with `ilc_clean_cij()`.
   - This is also a simulation pipeline for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org). The code performs the same operations as above, except:
+  
     5. Calculate the best-fitting synchrotron and dust indices using `loglike_beta()`.
     6. Calculate power spectra of the clean CMB maps using `milca_weights()` and `ilc_clean_cij()`.
 
