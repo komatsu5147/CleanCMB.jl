@@ -10,7 +10,7 @@ showresults = true
 
 # %% Simulation parameters
 nrz = 10 # How many realisations?
-#Random.seed!(5147) # Initial random number seed
+#Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
 rsim = 0 # Tensor-to-scalar ratio used for the simulation
 Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
 
@@ -351,7 +351,7 @@ for ib = 1:nbands
     me2[ib], mb2[ib] = mean(ee2[ib, :]), mean(bb2[ib, :])
     me3[ib], mb3[ib] = mean(ee3[ib, :]), mean(bb3[ib, :])
 end
-# Plot and save to "clbb_sim_sosat.pdf"
+# Plot and save to "ilc_clbb_sim_sosat.pdf"
 if showresults
     ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
     p = scatter(
@@ -378,7 +378,7 @@ if showresults
         lab = "Binned tensor",
         ls = :dash,
     )
-    savefig("clbb_sim_sosat.pdf")
+    savefig("ilc_clbb_sim_sosat.pdf")
     display(p)
 end
 
