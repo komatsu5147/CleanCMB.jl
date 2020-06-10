@@ -71,4 +71,6 @@ The package contains the following functions to return frequency dependence of f
     6. Calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
     7. Show results for visual inspection, if `showresults = true`.
     8. Calculate the tensor-to-scalar ratio and its uncertainty from the simulated realisations.
-    9. The results can be compared with the Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445), Table 4 ("ILC" column).
+    9. Write out the results (tensor-to-scalar ratios with and without residual foreground marginalisation) to a file `ilc_results_sosat.csv` and create a PDF figure `clbb_sim_sosat.pdf` showing the cleaned B-mode power spectrum, minus noisebias, and minus the residual foreground.
+  - For your reference, the results from 300 realisations are given in [results/ilc_results_sosat_300sims.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/results/ilc_results_sosat_300sims.csv). You can compute the mean and standard deviation of the tensor-to-scalar ratios and compare with the results given in Table 4 ("ILC" column) of Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445).
+    - Without FG marginalisation: r = (2.0 ± 1.7) x 10<sup>-3</sup>. With marginalisation: r = (-0.9 ± 2.9) x 10<sup>-3</sup>.
