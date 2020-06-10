@@ -1,6 +1,5 @@
 using CleanCMB
 using Optim
-using ForwardDiff
 using Healpix, Libsharp
 using PyCall
 using Random, Statistics
@@ -18,7 +17,7 @@ end
 showresults = true
 
 # %% Simulation parameters
-nrz = 5 # How many realisations?
+nrz = 10 # How many realisations?
 #Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
 rsim = 0 # Tensor-to-scalar ratio used for the simulation
 Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
@@ -322,111 +321,62 @@ for irz = 1:nrz
     dAdβs(x) = [zeros(nν) synch.(ν, βs = x) .* log.(ν / 23) zeros(nν)]
     dAdβd(x) = [zeros(nν) zeros(nν) dust1.(ν, βd = x) .* log.(ν / 353)]
     ip = findall(x -> x > 0, weight)
-    if !multithreads
-        # Function to maximise by `optimize` (single thread)
-        function func(x)
-            lnlike = 0
-            for iip = 1:length(ip)
-                lnlike +=
-                    loglike_beta(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        d[:, ip[iip], 1],
-                    ) + loglike_beta(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        d[:, ip[iip], 2],
-                    )
-            end
-            return -lnlike
-        end
-        # Derivative used by `optimize` (single thread)
-        function ∇func(x)
-            ∇lnlike = zeros(2)
-            for iip = 1:length(ip)
-                ∇lnlike[1] +=
-                    loglike_beta_deriv(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        dAdβs(x[1]),
-                        d[:, ip[iip], 1],
-                    ) + loglike_beta_deriv(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        dAdβs(x[1]),
-                        d[:, ip[iip], 2],
-                    )
-                ∇lnlike[2] +=
-                    loglike_beta_deriv(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        dAdβd(x[2]),
-                        d[:, ip[iip], 1],
-                    ) + loglike_beta_deriv(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        dAdβd(x[2]),
-                        d[:, ip[iip], 2],
-                    )
-            end
-            return -∇lnlike
-        end
-    else
-        # Function to maximise by `optimize` (multi threads)
-        function func(x)
+    np = length(ip)
+    # Function to maximise by `optimize`
+    function func(x)
+        add(iip) =
+            loglike_beta(nij * weight[ip[iip]]^2, A(x), d[:, ip[iip], 1]) +
+            loglike_beta(nij * weight[ip[iip]]^2, A(x), d[:, ip[iip], 2])
+        if multithreads
             lnlike = Atomic{Float64}(0)
-            @threads for iip = 1:length(ip)
-                atomic_add!(
-                    lnlike,
-                    loglike_beta(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        d[:, ip[iip], 1],
-                    ) + loglike_beta(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        d[:, ip[iip], 2],
-                    ),
-                )
+            @threads for iip = 1:np
+                atomic_add!(lnlike, add(iip))
             end
             return -lnlike[]
-        end
-        # Derivative used by `optimize` (multi threads)
-        function ∇func(x)
-            ∇lnlike1, ∇lnlike2 = Atomic{Float64}(0), Atomic{Float64}(0)
-            @threads for iip = 1:length(ip)
-                atomic_add!(
-                    ∇lnlike1,
-                    loglike_beta_deriv(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        dAdβs(x[1]),
-                        d[:, ip[iip], 1],
-                    ) + loglike_beta_deriv(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        dAdβs(x[1]),
-                        d[:, ip[iip], 2],
-                    ),
-                )
-                atomic_add!(
-                    ∇lnlike2,
-                    loglike_beta_deriv(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        dAdβd(x[2]),
-                        d[:, ip[iip], 1],
-                    ) + loglike_beta_deriv(
-                        nij * weight[ip[iip]]^2,
-                        A(x),
-                        dAdβd(x[2]),
-                        d[:, ip[iip], 2],
-                    ),
-                )
-            end
-            return [-∇lnlike1[], -∇lnlike2[]]
+        else
+            lnlike = sum(add.(1:np))
+            return -lnlike
         end
     end
+    # Derivative used by `optimize`
+    function ∇func(x)
+        add1(iip) =
+            loglike_beta_deriv(
+                nij * weight[ip[iip]]^2,
+                A(x),
+                dAdβs(x[1]),
+                d[:, ip[iip], 1],
+            ) + loglike_beta_deriv(
+                nij * weight[ip[iip]]^2,
+                A(x),
+                dAdβs(x[1]),
+                d[:, ip[iip], 2],
+            )
+        add2(iip) =
+            loglike_beta_deriv(
+                nij * weight[ip[iip]]^2,
+                A(x),
+                dAdβd(x[2]),
+                d[:, ip[iip], 1],
+            ) + loglike_beta_deriv(
+                nij * weight[ip[iip]]^2,
+                A(x),
+                dAdβd(x[2]),
+                d[:, ip[iip], 2],
+            )
+        if multithreads
+            ∇lnlike1, ∇lnlike2 = Atomic{Float64}(0), Atomic{Float64}(0)
+            @threads for iip = 1:np
+                atomic_add!(∇lnlike1, add1(iip))
+                atomic_add!(∇lnlike2, add2(iip))
+            end
+            return [-∇lnlike1[], -∇lnlike2[]]
+        else
+            ∇lnlike1, ∇lnlike2 = sum(add1.(1:np)), sum(add2.(1:np))
+            return [-∇lnlike1, -∇lnlike2]
+        end
+    end
+    # res = optimize(func, [-3, 1.6])
     res = optimize(func, ∇func, [-3, 1.6], inplace = false)
     @show res
     β = Optim.minimizer(res)
