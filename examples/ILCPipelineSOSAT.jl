@@ -38,6 +38,9 @@ for ip = 1:12*nside^2
     end
 end
 
+# %% Compute scalar and tensor power spectra using CLASS
+include("compute_cl_class.jl")
+
 # %% Setup NaMaster for the power spectrum analysis on a partial sky
 maskfile = "data/mask_apodized_r7.fits"
 include("setup_namaster.jl")
@@ -83,9 +86,6 @@ for iν = 1:nν
     push!(f_q, q)
     push!(f_u, u)
 end
-
-# %% Compute scalar and tensor power spectra using CLASS
-include("compute_cl_class.jl")
 
 # %% Loop over realisations
 ee1, bb1 = zeros(nbands, nrz), zeros(nbands, nrz) # Cleaned power spectra
