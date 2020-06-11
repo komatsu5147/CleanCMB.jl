@@ -13,6 +13,7 @@ nrz = 10 # How many realisations?
 Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
 rsim = 0 # Tensor-to-scalar ratio used for the simulation
 Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
+ℓmin, ℓmax = 30, 260 # ℓ range for fitting
 
 # %% Specification of the experiment
 # Reference: Simons Observatory Collaboration, JCAP, 02, 056 (2019), Table 1.
@@ -225,7 +226,7 @@ for irz = 1:nrz
             xlab = L"\ell",
             ylab = L"\ell(\ell+1)C_\ell/2\pi",
             ylims = [2e-5, 20],
-            xlims = [30, 300],
+            xlims = [ℓmin, ℓmax],
             legend = :topleft,
         )
         p = plot!(
@@ -245,7 +246,6 @@ for irz = 1:nrz
 end
 
 # %% Calculate the mean power spectra and variance
-ℓmin, ℓmax = 30, 260 # ℓ range for fitting
 me1, mb1 = zeros(nbands), zeros(nbands) # Mean total power spectra
 ve1, vb1 = zeros(nbands), zeros(nbands) # Variance of total power spectra
 me2, mb2 = zeros(nbands), zeros(nbands) # Mean noise power spectra
