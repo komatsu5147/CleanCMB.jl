@@ -97,4 +97,4 @@ The package contains the following functions to return frequency dependence of f
 
 ## Acknowledgment
 
-Development of the functions provided in this package are supported in part by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany's Excellence Strategy - EXC-2094 - 390783311 and JSPS KAKENHI Grant Number JP15H05896. The Kavli IPMU is supported by World Premier International Research Center Initiative (WPI), MEXT, Japan.
+Development of the functions provided in this package was supported in part by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany's Excellence Strategy - EXC-2094 - 390783311 and JSPS KAKENHI Grant Number JP15H05896. The Kavli IPMU is supported by World Premier International Research Center Initiative (WPI), MEXT, Japan.
