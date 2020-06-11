@@ -38,6 +38,10 @@ for ip = 1:12*nside^2
     end
 end
 
+# %% Setup NaMaster for the power spectrum analysis on a partial sky
+maskfile = "data/mask_apodized_r7.fits"
+include("setup_namaster.jl")
+
 # %% Basic parameters for spherical harmonics transform
 lmax, mmax = 3 * nside - 1, 3 * nside - 1
 geom_info = make_healpix_geom_info(nside, 1)
@@ -80,117 +84,8 @@ for iν = 1:nν
     push!(f_u, u)
 end
 
-# %% Compute the scalar and tensor CMB power spectrum
-# Call the python wrapper for CLASS, `classy`
-# Reference: https://github.com/lesgourg/class_public
-classy = pyimport("classy")
-# Create an instance of the CLASS wrapper
-cosmo = classy.Class()
-## Scalar power spectrum
-# Create a dictionary of the cosmological parameters
-Tcmb = 2.7255e6 # in μK
-deg_ncdm = true # 3 massive neutrinos with degenerate mass?
-params = Dict(
-    "output" => "tCl pCl lCl",
-    "modes" => "s",
-    "l_max_scalars" => lmax,
-    "lensing" => "yes",
-    "A_s" => exp(3.0448) * 1e-10,
-    "n_s" => 0.96605,
-    "k_pivot" => 0.05,
-    "h" => 0.6732,
-    "omega_b" => 0.022383,
-    "omega_cdm" => 0.12011,
-    "tau_reio" => 0.0543,
-    "N_ncdm" => 1,
-)
-if deg_ncdm
-    push!(params, "m_ncdm" => 0.02, "deg_ncdm" => 3, "N_ur" => 0.00641)
-    mν = params["m_ncdm"] * params["deg_ncdm"]
-else
-    push!(params, "m_ncdm" => 0.06, "N_ur" => 2.0328)
-    mν = params["m_ncdm"]
-end
-# Set the parameters to the cosmological code
-cosmo.set(params)
-# Run the whole code. Depending on your output, it will call the
-# CLASS modules more or less fast. For instance, without any
-# output asked, CLASS will only compute background quantities,
-# thus running almost instantaneously.
-# This is equivalent to the beginning of the `main` routine of CLASS,
-# with all the struct_init() methods called.
-cosmo.compute()
-# Access the lensed scalar cl until l=lmax. It is a dictionnary that contains the fields: ell, tt, te, ee, bb, pp, tp
-cls = cosmo.lensed_cl(lmax)
-# If you want to change completely the cosmology, you should also
-# clean the arguments, otherwise, if you are simply running on a loop
-# of different values for the same parameters, this step is not needed
-cosmo.empty()
-## Tensor power spectrum
-rclass = 0.01
-params = Dict(
-    "output" => "tCl pCl",
-    "modes" => "t",
-    "l_max_tensors" => lmax,
-    "lensing" => "no",
-    "r" => rclass,
-    "n_t" => 0,
-    "A_s" => exp(3.0448) * 1e-10,
-    "k_pivot" => 0.05,
-    "h" => 0.6732,
-    "omega_b" => 0.022383,
-    "omega_cdm" => 0.12011,
-    "tau_reio" => 0.0543,
-    "N_ncdm" => 1,
-)
-if deg_ncdm
-    push!(params, "m_ncdm" => 0.02, "deg_ncdm" => 3, "N_ur" => 0.00641)
-    mν = params["m_ncdm"] * params["deg_ncdm"]
-else
-    push!(params, "m_ncdm" => 0.06, "N_ur" => 2.0328)
-    mν = params["m_ncdm"]
-end
-cosmo.set(params)
-cosmo.compute()
-clt = cosmo.raw_cl(lmax)
-
-# %% Import NaMaster for the power spectrum analysis on a partial sky
-# Reference: Alonso et al.,  MNRAS, 484, 4127 (2019), https://github.com/LSSTDESC/NaMaster
-nmt = pyimport("pymaster")
-# Read in and apodize mask (C^2 apodization, 10 degrees)
-maskfile = "data/mask_apodized_r7.fits"
-m = readMapFromFITS(maskfile, 1, Float64)
-mask = nmt.mask_apodization(m.pixels, 10.0, apotype = "C2")
-# Create binning scheme. We will use 10 multipoles per bandpower.
-b = nmt.NmtBin.from_nside_linear(nside, 10, is_Dell = true)
-# Array with effective multipole per bandpower
-ell_eff = b.get_effective_ells()
-nbands = b.get_n_bands()
-# The theory power spectrum must be binned into bandpowers in the same manner the data has.
-# Generate an NmtWorkspace object that we use to compute and store the mode coupling matrix.
-# Note that this matrix depends only on the masks of the two fields to correlate, but not on the maps themselves.
-w = nmt.NmtWorkspace()
-f = nmt.NmtField(mask, [f_q[1], f_u[1]], purify_b = true)
-w.compute_coupling_matrix(f, f, b)
-cls_th = [cls["ee"], zero(cls["ee"]), zero(cls["bb"]), cls["bb"]] * Tcmb^2
-cls_th_binned = w.decouple_cell(w.couple_cell(cls_th))
-clt_th = [clt["ee"], zero(clt["ee"]), zero(clt["bb"]), clt["bb"]] * Tcmb^2
-clt_th_binned = w.decouple_cell(w.couple_cell(clt_th))
-# The function defined below will compute the power spectrum between two
-# NmtFields f_a and f_b, using the coupling matrix stored in the
-# NmtWorkspace wsp and subtracting the deprojection bias clb.
-# Note that the most expensive operations in the MASTER algorithm are
-# the computation of the coupling matrix and the deprojection bias. Since
-# these two objects are precomputed, this function should be pretty fast!
-function compute_master(f_a, f_b, wsp)
-    # Compute the power spectrum (a la anafast) of the masked fields
-    # Note that we only use n_iter=0 here to speed up the computation,
-    # but the default value of 3 is recommended in general.
-    cl_coupled = nmt.compute_coupled_cell(f_a, f_b)
-    # Decouple power spectrum into bandpowers inverting the coupling matrix
-    cl_decoupled = wsp.decouple_cell(cl_coupled)
-    return cl_decoupled
-end
+# %% Compute scalar and tensor power spectra using CLASS
+include("compute_cl_class.jl")
 
 # %% Loop over realisations
 ee1, bb1 = zeros(nbands, nrz), zeros(nbands, nrz) # Cleaned power spectra
