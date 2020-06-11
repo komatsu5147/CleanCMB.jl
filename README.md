@@ -66,15 +66,16 @@ The package contains the following functions to return frequency dependence of f
   - This code applies `ilc_weights()` in harmonic domain to produce power spectra of clean polarisation maps of the CMB.
   - The code requires [Healpix.jl](https://github.com/ziotom78/Healpix.jl) and [Libsharp.jl](https://github.com/ziotom78/Libsharp.jl). It also calls python wrappers [pymaster](https://github.com/LSSTDESC/NaMaster) and [classy](https://github.com/lesgourg/class_public/wiki/Python-wrapper) via `PyCall`.
   - This is a simulation pipeline for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org). The code performs the following operations:
-    1. Read in and smooth foreground maps by beams of the telescope.
-    2. Generate theoretical scalar- and tensor-mode power spectra of the CMB using [CLASS](https://github.com/lesgourg/class_public).
-    3. Generate Gaussian random realisations of the CMB and noise.
-    4. Calculate covariance matrices `cij` of the CMB, noise, and foreground.
-    5. Calculate ILC weights in harmonic domain using `ilc_weights()`.
-    6. Calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
-    7. Show results for visual inspection, if `showresults = true`.
-    8. Calculate the tensor-to-scalar ratio and its uncertainty from the simulated realisations.
-    9. Write out the results (tensor-to-scalar ratios with and without residual foreground marginalisation) to a file `ilc_results_sosat.csv` and create a PDF figure `ilc_clbb_sim_sosat.pdf` showing the cleaned B-mode power spectrum, minus noisebias, and minus the residual foreground.
+    1. Read in a hits map and calculate weights for inhomogeneous noise.
+    2. `include("compute_cl_class.jl")` (see [examples/compute_cl_class.jl](https://github.com/komatsu5147/CleanCMB.jl/blob/master/examples/compute_cl_class.jl)) to generate theoretical scalar- and tensor-mode power spectra of the CMB using [CLASS](https://github.com/lesgourg/class_public).
+    3. Read in and smooth foreground maps by beams of the telescope.
+    4. Generate Gaussian random realisations of the CMB and noise.
+    5. Calculate covariance matrices `cij` of the foreground, noise, and CMB+foreground+noise maps.
+    6. Calculate ILC weights in harmonic domain using `ilc_weights()`.
+    7. Calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
+    8. Show results for visual inspection, if `showresults = true`.
+    9. Calculate the tensor-to-scalar ratio and its uncertainty from the simulated realisations.
+    10. Write out the results (tensor-to-scalar ratios with and without residual foreground marginalisation) to a file `ilc_results_sosat.csv` and create a PDF figure `ilc_clbb_sim_sosat.pdf` showing the cleaned B-mode power spectrum, minus noisebias, and minus the residual foreground.
   - For your reference, the results from 300 realisations are given in [results/ilc_results_sosat_300sims.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/ilc_results_sosat_300sims.csv). You can compute the mean and standard deviation of the tensor-to-scalar ratios and compare with the results given in Table 4 ("ILC" column) of Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445).
     - Without FG marginalisation: r = (2.0 ± 1.7) x 10<sup>-3</sup>. With marginalisation: r = (-0.9 ± 2.9) x 10<sup>-3</sup>.
 - [examples/MLPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MLPipelineSOSAT.jl)
@@ -82,8 +83,8 @@ The package contains the following functions to return frequency dependence of f
   - This code applies `loglike_beta()` in pixel domain to find the best-fitting synchrotron and dust spectral indices, calculates weights using the N-component constrained ILC `milca_weights(nij, ...)` with the noise covariance matrix `nij` instead of the total covariance matrix `cij`, and obtains power spectra of clean polarisation maps of the CMB with `ilc_clean_cij()`.
   - This is also a simulation pipeline for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org). The code performs the same operations as above, except:
 
-    5. Calculate the best-fitting synchrotron and dust indices using `loglike_beta()`.
-    6. Calculate power spectra of the clean CMB maps using `milca_weights()` and `ilc_clean_cij()`.
+    6. Calculate the best-fitting synchrotron and dust indices using `loglike_beta()`.
+    7. Calculate power spectra of the clean CMB maps using `milca_weights()` and `ilc_clean_cij()`.
 
 <!--
   - For your reference, the results from 300 realisations are given in [results/ml_results_sosat_300sims.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/ml_results_sosat_300sims.csv). *Note that the random number seeds are different from the ILC results.* You can compute the mean and standard deviation of the tensor-to-scalar ratios and compare with the results given in Table 4 ("xForecast" column) of Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445).
