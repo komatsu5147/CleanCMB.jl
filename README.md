@@ -2,7 +2,12 @@
 
 This package contains functions to enable extraction of clean maps of the cosmic microwave background (CMB). Some functions can be used to extract non-CMB astrophysical components as well.
 
-Different algorithms exist for extraction of clean maps of the CMB (as well as of astrophysical components). The package currently supports the following algorithms:
+Different algorithms exist for extraction of clean maps of the CMB (as well as of astrophysical components). The package currently supports:
+
+- Internal Linear Combination (ILC) Method
+- Parametric Maximum Likelihood Method
+
+See [this note](https://github.com/komatsu5147/CleanCMB.jl/tree/master/note_on_ilc_vs_ml.pdf) for the relationship between them.
 
 ## Internal Linear Combination (ILC) Method
 - `ilc_weights(cij[, e, ℓid=3])`: return weights for the internal linear combination (ILC) method, following Equation (12) of [Tegmark et al., PRD, 68, 123523 (2003)](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.68.123523).
@@ -83,8 +88,8 @@ The package contains the following functions to return frequency dependence of f
   - This code applies `loglike_beta()` in pixel domain to find the best-fitting synchrotron and dust spectral indices, calculates weights using the N-component constrained ILC `milca_weights(nij, ...)` with the noise covariance matrix `nij` instead of the total covariance matrix `cij`, and obtains power spectra of clean polarisation maps of the CMB with `ilc_clean_cij()`.
   - This is also a simulation pipeline for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org). The code performs the same operations as above, except:
 
-    6. Calculate the best-fitting synchrotron and dust indices using `loglike_beta()`.
-    7. Calculate power spectra of the clean CMB maps using `milca_weights()` and `ilc_clean_cij()`.
+    6. Calculate the best-fitting synchrotron and dust indices (`βs` and `βd`) by maximising `loglike_beta()` with respect to them.
+    7. Calculate weights using `milca_weights()` with the best-fitting `βs` and `βd`, and calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
 
 <!--
   - For your reference, the results from 300 realisations are given in [results/ml_results_sosat_300sims.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/ml_results_sosat_300sims.csv). *Note that the random number seeds are different from the ILC results.* You can compute the mean and standard deviation of the tensor-to-scalar ratios and compare with the results given in Table 4 ("xForecast" column) of Simons Observatory [forecast paper](https://arxiv.org/abs/1808.07445).
