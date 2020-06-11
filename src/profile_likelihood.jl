@@ -27,7 +27,7 @@ function loglike_beta(
 end
 
 """
-    loglike_beta_deriv(nij, A, dAdβ, d)
+    loglike_beta_grad(nij, A, dAdβ, d)
 
 Derivative of the profile likelihood for the frequency response vectors with respect to a foreground parameter
 
@@ -41,7 +41,7 @@ Derivative of the profile likelihood for the frequency response vectors with res
     - E.g., ``dAdβ = [zeros(nν) dsynch/dβs zeros(nν)]`` where `zeros(nν)` for CMB and dust because they do not depend on the synchrotron index `βs`.
 - `d::Array{<:AbstractFloat,1}`: data vector for a given pixel (or any other appropriate domain). The number of elements is `nν`.
 """
-function loglike_beta_deriv(
+function loglike_beta_grad(
     nij::Array{T,2},
     A::Array{T,2},
     dAdβ::Array{T,2},
@@ -54,5 +54,40 @@ function loglike_beta_deriv(
     end
     x = M \ d
     s = inv(A' * inv(M) * A) * A'x
-    lnlike_deriv = s' * dAdβ' * (x - M \ (A * s))
+    lnlike_grad = s' * dAdβ' * (x - M \ (A * s))
+end
+
+"""
+    loglike_beta_hess(nij, A, dAdβI, dAdβJ, d)
+
+Hessian of the profile likelihood for the frequency response vectors with respect to foreground parameters
+
+*Reference*: Equation (5) of Errard et al., PRD, 84, 063005 (2011)
+
+# Arguments
+- `nij::Array{<:AbstractFloat,2}`: symmetric noise covariance matrix with the dimention of `(nν, nν)` where `nν` is the number of frequency bands.
+- `A::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the frequency response, for `nc` components in sky.
+    - E.g., ``A = [a B]`` where `a = ones(nν)` for CMB and `B` is a `nν`-by-`nc-1` matrix for the frequency response of foreground components.
+- `dAdβI::Array{<:AbstractFloat,2}` and `dAdβJ::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the derivative of the frequency response with respect to a foreground parameter.
+    - E.g., ``dAdβI = [zeros(nν) dsynch/dβs zeros(nν)]`` where `zeros(nν)` for CMB and dust because they do not depend on the synchrotron index `βs`.
+- `d::Array{<:AbstractFloat,1}`: data vector for a given pixel (or any other appropriate domain). The number of elements is `nν`.
+"""
+function loglike_beta_hess(
+    nij::Array{T,2},
+    A::Array{T,2},
+    dAdβI::Array{T,2},
+    dAdβJ::Array{T,2},
+    d::Array{T,1},
+) where {T<:AbstractFloat}
+    if size(nij)[1] ≠ size(nij)[2]
+        throw(DimensionMismatch("covariance matrix must be a square matrix"))
+    else
+        M = Symmetric(nij)
+    end
+    x = M \ d
+    AtMinvAinv = inv(A' * inv(M) * A)
+    s = AtMinvAinv * A'x
+    u = M \ (dAdβJ * s)
+    v = M \ (A * AtMinvAinv * A'u)
+    lnlike_hess = tr(dAdβI' * (v - u) * s')
 end

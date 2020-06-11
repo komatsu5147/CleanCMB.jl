@@ -28,13 +28,13 @@ Different algorithms exist for extraction of clean maps of the CMB (as well as o
 
 ## Parametric Maximum Likelihood Method
 - `loglike_beta(nij, A, d)`: return log(likelihood) for frequency response vectors `A` given a data vector `d`, using Equation (9) of [Stompor et al., MNRAS, 392, 216 (2009)](https://academic.oup.com/mnras/article/392/1/216/1071929).
-- `loglike_beta_deriv(nij, A, dAdβ, d)`: return the derivative of log(likelihood) with respect to a foreground parameter, using Equation (A1) of [Errard et al., PRD, 84, 063005 (2011)](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.84.063005). This function may be used to make the maximisation of `loglike_beta(nij, A, d)` more efficient.
+- `loglike_beta_deriv(nij, A, dAdβ, d)` and `loglike_beta_hessian(nij, A, dAdβI, dAdβJ, d)`: return the gradient and hessian of log(likelihood) with respect to foreground parameters, using Equation (A1) and (5) of [Errard et al., PRD, 84, 063005 (2011)](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.84.063005), respectively. These functions may be used to make the maximisation of `loglike_beta(nij, A, d)` more efficient.
 
 ### Arguments
 - `nij::Array{<:AbstractFloat,2}`: `nν`-by-`nν` symmetric noise covariance matrix, where `nν` is the number of frequency bands.
 - `A::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the frequency response, for `nc` components in sky.
     - E.g., ``A = [a B]`` where `a = ones(nν)` for CMB and `B` is a `nν`-by-`nc-1` matrix for the frequency response of foreground components.
-- `dAdβ::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the derivative of the frequency response with respect to a foreground parameter.
+- `dAdβ::Array{<:AbstractFloat,2}`, `dAdβI::Array{<:AbstractFloat,2}` and `dAdβJ::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the derivative of the frequency response with respect to a foreground parameter.
     - E.g., ``dAdβ = [zeros(nν) dsynch/dβs zeros(nν)]`` where `zeros(nν)` for CMB and dust because they do not depend on the synchrotron index `βs`.
 - `d::Array{<:AbstractFloat,1}`: data vector for a given pixel (or any other appropriate domain). The number of elements is `nν`.
 
