@@ -10,7 +10,7 @@ showresults = true
 
 # %% Simulation parameters
 nrz = 10 # How many realisations?
-#Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
+Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
 rsim = 0 # Tensor-to-scalar ratio used for the simulation
 Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
 
@@ -39,14 +39,10 @@ for ip = 1:12*nside^2
 end
 
 # %% Compute scalar and tensor power spectra using CLASS
+lmax, mmax = 3 * nside - 1, 3 * nside - 1
 include("compute_cl_class.jl")
 
-# %% Setup NaMaster for the power spectrum analysis on a partial sky
-maskfile = "data/mask_apodized_r7.fits"
-include("setup_namaster.jl")
-
 # %% Basic parameters for spherical harmonics transform
-lmax, mmax = 3 * nside - 1, 3 * nside - 1
 geom_info = make_healpix_geom_info(nside, 1)
 alm_info = make_triangular_alm_info(lmax, mmax, 1)
 elm, blm = Alm{ComplexF64}(lmax, mmax), Alm{ComplexF64}(lmax, mmax)
@@ -86,6 +82,20 @@ for iν = 1:nν
     push!(f_q, q)
     push!(f_u, u)
 end
+
+# %% Setup NaMaster for the power spectrum analysis on a partial sky
+maskfile = "data/mask_apodized_r7.fits"
+include("setup_namaster.jl")
+# The theory power spectrum must be binned into bandpowers in the same manner the data has.
+# Generate an NmtWorkspace object that we use to compute and store the mode coupling matrix.
+# Note that this matrix depends only on the masks of the two fields to correlate, but not on the maps themselves.
+w = nmt.NmtWorkspace()
+f = nmt.NmtField(mask, [f_q[1], f_u[1]], purify_b = true)
+w.compute_coupling_matrix(f, f, b)
+cls_th = [cls["ee"], zero(cls["ee"]), zero(cls["bb"]), cls["bb"]] * Tcmb^2
+cls_th_binned = w.decouple_cell(w.couple_cell(cls_th))
+clt_th = [clt["ee"], zero(clt["ee"]), zero(clt["bb"]), clt["bb"]] * Tcmb^2
+clt_th_binned = w.decouple_cell(w.couple_cell(clt_th))
 
 # %% Loop over realisations
 ee1, bb1 = zeros(nbands, nrz), zeros(nbands, nrz) # Cleaned power spectra
