@@ -32,16 +32,23 @@ See [this note](https://github.com/komatsu5147/CleanCMB.jl/tree/master/note_on_i
 `ℓid=1` if `cij[nℓ,nν,nν]`, `ℓid=2` if `cij[nν,nℓ,nν]`, and `ℓid=3` (the default value) if `cij[nν,nν,nℓ]`.
 
 ## Parametric Maximum Likelihood Method
-- `loglike_beta(nij, A, d)`: return log(likelihood) for frequency response vectors `A` given a data vector `d`, using Equation (9) of [Stompor et al., MNRAS, 392, 216 (2009)](https://academic.oup.com/mnras/article/392/1/216/1071929).
+- `loglike_beta(nij, A, d)` or `loglike_beta(nij, A, cij)`:: return log(likelihood) for frequency response vectors `A` given a data vector `d` or data covariance matrix `cij`, based on Equation (9) of [Stompor et al., MNRAS, 392, 216 (2009)](https://academic.oup.com/mnras/article/392/1/216/1071929).
+
+<!--
 - `loglike_beta_deriv(nij, A, dAdβ, d)` and `loglike_beta_hessian(nij, A, dAdβI, dAdβJ, d)`: return the gradient and hessian of log(likelihood) with respect to foreground parameters, using Equation (A1) and (5) of [Errard et al., PRD, 84, 063005 (2011)](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.84.063005), respectively. These functions may be used to make the maximisation of `loglike_beta(nij, A, d)` more efficient.
+-->
 
 ### Arguments
 - `nij::Array{<:AbstractFloat,2}`: `nν`-by-`nν` symmetric noise covariance matrix, where `nν` is the number of frequency bands.
 - `A::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the frequency response, for `nc` components in sky.
     - E.g., ``A = [a B]`` where `a = ones(nν)` for CMB and `B` is a `nν`-by-`nc-1` matrix for the frequency response of foreground components.
+- `d::Array{<:AbstractFloat,1}`: data vector for a given pixel, (ℓ,m), or any other appropriate domain. The number of elements is `nν`.
+- `cij::Array{<:AbstractFloat,2}`: `nν`-by-`nν` symmetric covariance matrix for a given multipole, pixel, or any other appropriate domain.
+
+<!--
 - `dAdβ::Array{<:AbstractFloat,2}`, `dAdβI::Array{<:AbstractFloat,2}` and `dAdβJ::Array{<:AbstractFloat,2}`: `nν`-by-`nc` matrix of the derivative of the frequency response with respect to a foreground parameter.
     - E.g., ``dAdβ = [zeros(nν) dsynch/dβs zeros(nν)]`` where `zeros(nν)` for CMB and dust because they do not depend on the synchrotron index `βs`.
-- `d::Array{<:AbstractFloat,1}`: data vector for a given pixel (or any other appropriate domain). The number of elements is `nν`.
+-->
 
 ## Foreground models
 The package contains the following functions to return frequency dependence of foreground components:
@@ -86,10 +93,10 @@ The package contains the following functions to return frequency dependence of f
   - In addition, the results from 100 realisations starting with the initial seed of `5147` are given in [results/ilc_results_sosat_100sims_seed5147.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/ilc_results_sosat_100sims_seed5147.csv).
 - [examples/MLPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MLPipelineSOSAT.jl)
   - **This code is not yet stable.**
-  - This code applies `loglike_beta()` in pixel domain to find the best-fitting synchrotron and dust spectral indices, calculates weights using the N-component constrained ILC `milca_weights(nij, ...)` with the noise covariance matrix `nij` instead of the total covariance matrix `cij`, and obtains power spectra of clean polarisation maps of the CMB with `ilc_clean_cij()`.
+  - This code applies `loglike_beta()` in harmonic domain to find the best-fitting synchrotron and dust spectral indices, calculates weights using the N-component constrained ILC `milca_weights(nij, ...)` with the noise covariance matrix `nij` instead of the total covariance matrix `cij`, and obtains power spectra of clean polarisation maps of the CMB with `ilc_clean_cij()`.
   - This is also a simulation pipeline for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org). The code performs the same operations as above, except:
 
-    6. Calculate the best-fitting synchrotron and dust indices (`βs` and `βd`) by maximising `loglike_beta()` with respect to them.
+    6. Calculate the best-fitting synchrotron and dust indices (`βs` and `βd`) by maximising `loglike_beta()` with respect to them for each band power.
     7. Calculate weights using `milca_weights()` with the best-fitting `βs` and `βd`, and calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
 
 <!--
