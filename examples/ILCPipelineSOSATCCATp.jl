@@ -25,6 +25,10 @@ FWHM = [91, 63, 30, 17, 11, 9, 0.58, 0.5, 0.23] # in arcmin
 uKarcmin = [35, 21, 2.6, 3.3, 6.3, 16, 105, 372, 5.7e5] # in μK arcmin (for temperature; x√2 for pol)
 lknee = [30, 30, 50, 50, 70, 100, 700, 700, 700]
 αknee = [-2.4, -2.4, -2.5, -3, -3, -3, -1.4, -1.4, -1.4]
+# temperature beam
+bTl(ℓ, σb) = exp(-ℓ * (ℓ + 1) * σb^2 / 2)
+# polarisation beam, Eq.(5.8) of Ng & Liu, Int.J.Mod.Phys.D, 8, 61 (1999)
+bPl(ℓ, σb) = ifelse(ℓ >= 2, exp(-(ℓ * (ℓ + 1) - 4) * σb^2 / 2), 0)
 
 # %% Read in the hits map and calculate weights for inhomogeneous noise
 nhitsfile = "data/nhits_SAT_r7.FITS"
@@ -65,11 +69,10 @@ for iν = 1:nν
         SHARP_DP,
     )
     for l = 0:lmax
-        bl = exp(-l^2 * σ[iν]^2 / 2)
         for m = 0:l
             ilm = alm_index(alm_info, l, m) + 1
-            elm.alm[ilm] *= bl
-            blm.alm[ilm] *= bl
+            elm.alm[ilm] *= bPl(l, σ[iν])
+            blm.alm[ilm] *= bPl(l, σ[iν])
         end
     end
     sharp_execute!(
@@ -126,7 +129,6 @@ for irz = 1:nrz
     f1, f2, f3 = [], [], [] # List of NaMaster fields
     for iν = 1:nν
         for l = 0:lmax
-            bl = exp(-l^2 * σ[iν]^2 / 2)
             ee =
                 2 *
                 (uKarcmin[iν] * π / 10800)^2 *
@@ -137,14 +139,14 @@ for irz = 1:nrz
                 (1 + (l / lknee[iν])^αknee[iν])
             if l >= 2
                 ilm = alm_index(alm_info, l, 0) + 1
-                celm.alm[ilm] = elm.alm[ilm] * bl
-                cblm.alm[ilm] = blm.alm[ilm] * bl
+                celm.alm[ilm] = elm.alm[ilm] * bPl(l, σ[iν])
+                cblm.alm[ilm] = blm.alm[ilm] * bPl(l, σ[iν])
                 nelm.alm[ilm] = √ee * randn(Float64)
                 nblm.alm[ilm] = √bb * randn(Float64)
                 for m = 1:l
                     ilm = alm_index(alm_info, l, m) + 1
-                    celm.alm[ilm] = elm.alm[ilm] * bl
-                    cblm.alm[ilm] = blm.alm[ilm] * bl
+                    celm.alm[ilm] = elm.alm[ilm] * bPl(l, σ[iν])
+                    cblm.alm[ilm] = blm.alm[ilm] * bPl(l, σ[iν])
                     nelm.alm[ilm] = √ee * randn(ComplexF64)
                     nblm.alm[ilm] = √bb * randn(ComplexF64)
                 end
@@ -176,8 +178,6 @@ for irz = 1:nrz
         )
         n_q .*= weight
         n_u .*= weight
-        ell = 0:lmax
-        bl = exp.(-ell .^ 2 * σ[iν]^2 / 2)
         ## Create NaMaster fields for the pseudo-Cℓ
         # f1: foreground + CMB + noise
         push!(
@@ -186,15 +186,28 @@ for irz = 1:nrz
                 mask,
                 [f_q[iν] + c_q + n_q, f_u[iν] + c_u + n_u],
                 purify_b = true,
-                beam = bl,
+                beam = bPl.(0:lmax, σ[iν]),
             ),
         )
         # f2: noise
-        push!(f2, nmt.NmtField(mask, [n_q, n_u], purify_b = true, beam = bl))
+        push!(
+            f2,
+            nmt.NmtField(
+                mask,
+                [n_q, n_u],
+                purify_b = true,
+                beam = bPl.(0:lmax, σ[iν]),
+            ),
+        )
         # f3: foreground
         push!(
             f3,
-            nmt.NmtField(mask, [f_q[iν], f_u[iν]], purify_b = true, beam = bl),
+            nmt.NmtField(
+                mask,
+                [f_q[iν], f_u[iν]],
+                purify_b = true,
+                beam = bPl.(0:lmax, σ[iν]),
+            ),
         )
     end
     ## Compute covariance matrices of EE and BB
@@ -247,16 +260,10 @@ for irz = 1:nrz
 end
 
 # %% Calculate the mean power spectra and variance
-me1, mb1 = zeros(nbands), zeros(nbands) # Mean total power spectra
-ve1, vb1 = zeros(nbands), zeros(nbands) # Variance of total power spectra
-me2, mb2 = zeros(nbands), zeros(nbands) # Mean noise power spectra
-me3, mb3 = zeros(nbands), zeros(nbands) # Mean residual FG power spectra
-for ib = 1:nbands
-    me1[ib], mb1[ib] = mean(ee1[ib, :]), mean(bb1[ib, :])
-    ve1[ib], vb1[ib] = var(ee1[ib, :]), var(bb1[ib, :])
-    me2[ib], mb2[ib] = mean(ee2[ib, :]), mean(bb2[ib, :])
-    me3[ib], mb3[ib] = mean(ee3[ib, :]), mean(bb3[ib, :])
-end
+me1, mb1 = mean(ee1, dims = 2), mean(bb1, dims = 2)
+ve1, vb1 = var(ee1, dims = 2), var(bb1, dims = 2)
+me2, mb2 = mean(ee2, dims = 2), mean(bb2, dims = 2)
+me3, mb3 = mean(ee3, dims = 2), mean(bb3, dims = 2)
 # Plot and save to "ilc_clbb_sim_sosatccatp.pdf"
 if showresults
     ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
