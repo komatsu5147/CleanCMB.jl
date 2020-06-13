@@ -264,8 +264,8 @@ ve1, vb1 = var(ee1, dims = 2), var(bb1, dims = 2)
 me2, mb2 = mean(ee2, dims = 2), mean(bb2, dims = 2)
 me3, mb3 = mean(ee3, dims = 2), mean(bb3, dims = 2)
 # Plot and save to "ilc_clbb_sim_sosat.pdf"
+ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
 if showresults
-    ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
     p = scatter(
         ell_eff[ii],
         mb1[ii],
