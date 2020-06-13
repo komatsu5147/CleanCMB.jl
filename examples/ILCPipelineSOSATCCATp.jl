@@ -19,7 +19,7 @@ Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
 # Reference: Simons Observatory Collaboration, JCAP, 02, 056 (2019), Table 1.
 # Reference: CCAT-prime Collaboration, J.Low Temp.Phys., 199, 1089 (2020), Table 1.
 ν = [27, 39, 93, 145, 225, 280, 350, 410, 850] # in GHz
-nν = length(ν)
+nν, nνSO = length(ν), 6
 FWHM = [91, 63, 30, 17, 11, 9, 0.58, 0.5, 0.23] # in arcmin
 σ = FWHM * π / 10800 / √(8 * log(2)) # in radians
 uKarcmin = [35, 21, 2.6, 3.3, 6.3, 16, 105, 372, 5.7e5] # in μK arcmin (for temperature; x√2 for pol)
@@ -106,6 +106,9 @@ clt_th_binned = w.decouple_cell(w.couple_cell(clt_th))
 ee1, bb1 = zeros(nbands, nrz), zeros(nbands, nrz) # Cleaned power spectra
 ee2, bb2 = zeros(nbands, nrz), zeros(nbands, nrz) # Noise power spectra
 ee3, bb3 = zeros(nbands, nrz), zeros(nbands, nrz) # Residual foreground power spectra
+ee1SO, bb1SO = zeros(nbands, nrz), zeros(nbands, nrz) # Cleaned power spectra
+ee2SO, bb2SO = zeros(nbands, nrz), zeros(nbands, nrz) # Noise power spectra
+ee3SO, bb3SO = zeros(nbands, nrz), zeros(nbands, nrz) # Residual foreground power spectra
 for irz = 1:nrz
     @show irz
     # Create spherical harmonics coefficients of the CMB
@@ -228,6 +231,14 @@ for irz = 1:nrz
     ee1[:, irz], bb1[:, irz] = ilc_clean_cij(ce1, we), ilc_clean_cij(cb1, wb)
     ee2[:, irz], bb2[:, irz] = ilc_clean_cij(ce2, we), ilc_clean_cij(cb2, wb)
     ee3[:, irz], bb3[:, irz] = ilc_clean_cij(ce3, we), ilc_clean_cij(cb3, wb)
+    we, wb =
+        ilc_weights(ce1[1:nνSO, 1:nνSO, :]), ilc_weights(cb1[1:nνSO, 1:nνSO, :])
+    ee1SO[:, irz], bb1SO[:, irz] = ilc_clean_cij(ce1[1:nνSO, 1:nνSO, :], we),
+    ilc_clean_cij(cb1[1:nνSO, 1:nνSO, :], wb)
+    ee2SO[:, irz], bb2SO[:, irz] = ilc_clean_cij(ce2[1:nνSO, 1:nνSO, :], we),
+    ilc_clean_cij(cb2[1:nνSO, 1:nνSO, :], wb)
+    ee3SO[:, irz], bb3SO[:, irz] = ilc_clean_cij(ce3[1:nνSO, 1:nνSO, :], we),
+    ilc_clean_cij(cb3[1:nνSO, 1:nνSO, :], wb)
     # Show power spectra for visual inspection
     if showresults
         p = plot(
@@ -264,9 +275,13 @@ me1, mb1 = mean(ee1, dims = 2), mean(bb1, dims = 2)
 ve1, vb1 = var(ee1, dims = 2), var(bb1, dims = 2)
 me2, mb2 = mean(ee2, dims = 2), mean(bb2, dims = 2)
 me3, mb3 = mean(ee3, dims = 2), mean(bb3, dims = 2)
+me1SO, mb1SO = mean(ee1SO, dims = 2), mean(bb1SO, dims = 2)
+ve1SO, vb1SO = var(ee1SO, dims = 2), var(bb1SO, dims = 2)
+me2SO, mb2SO = mean(ee2SO, dims = 2), mean(bb2SO, dims = 2)
+me3SO, mb3SO = mean(ee3SO, dims = 2), mean(bb3SO, dims = 2)
 # Plot and save to "ilc_clbb_sim_sosatccatp.pdf"
+ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
 if showresults
-    ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
     p = scatter(
         ell_eff[ii],
         mb1[ii],
@@ -296,10 +311,12 @@ if showresults
 end
 
 # %% Calculate the tensor-to-scalar ratio
-r = zeros(nrz)
-w = zeros(nrz, 2)
+r, rSO = zeros(nrz), zeros(nrz)
+w, wSO = zeros(nrz, 2), zeros(nrz, 2)
+
 # Joint fit for the tensor-to-scalar ratio and the foreground amplitude
 y1 = clt_th_binned[4, ii] / rclass
+# SO-SAT + CCAT-prime
 y2 = mb3[ii]
 v = vb1[ii]
 Fij = [
@@ -314,6 +331,7 @@ for irz = 1:nrz
     w[irz, 1:2] = Fij \ z
 end
 # Report the final results
+println("SO-SAT + CCAT-prime results")
 println("Fitted ℓs: ", ell_eff[ii])
 println("Without foreground marginalisation:")
 println("- r = ", mean(r), " ± ", std(r))
@@ -323,10 +341,42 @@ println("- r = ", mean(w[:, 1]), " ± ", std(w[:, 1]))
 println("- Fisher error = ", √Cij[1, 1])
 # println("- FG = ", mean(w[:, 2]), " ± ", std(w[:, 2]))
 # println("- Fisher error = ", √Cij[2, 2])
+# SO-SAT Only
+y2 = mb3SO[ii]
+v = vb1SO[ii]
+Fij = [
+    sum(y1 .* y1 ./ v) sum(y1 .* y2 ./ v)
+    sum(y2 .* y1 ./ v) sum(y2 .* y2 ./ v)
+] # 2x2 Fisher matrix for the tensor-to-scalar ratio and the foreground amplitude
+Cij = inv(Fij) # Covariance matrix
+for irz = 1:nrz
+    x = bb1SO[ii, irz] .- mb2SO[ii] .- Alens * cls_th_binned[4, ii]
+    rSO[irz] = sum(x .* y1 ./ v) / sum(y1 .^ 2 ./ v)
+    z = [sum(x .* y1 ./ v), sum(x .* y2 ./ v)]
+    wSO[irz, 1:2] = Fij \ z
+end
+# Report the final results
+println("SO-SAT only results")
+println("Fitted ℓs: ", ell_eff[ii])
+println("Without foreground marginalisation:")
+println("- r = ", mean(rSO), " ± ", std(rSO))
+println("- Fisher error = ", 1 / √sum(y1 .^ 2 ./ v))
+println("With foreground marginalisation:")
+println("- r = ", mean(wSO[:, 1]), " ± ", std(wSO[:, 1]))
+println("- Fisher error = ", √Cij[1, 1])
+# println("- FG = ", mean(wSO[:, 2]), " ± ", std(wSO[:, 2]))
+# println("- Fisher error = ", √Cij[2, 2])
+
 # %% Save to the file
-t = Tables.table([1:nrz r w[:, 1]])
+t = Tables.table([1:nrz r w[:, 1] rSO wSO[:, 1]])
 CSV.write(
     "ilc_results_sosatccatp.csv",
     t,
-    header = ["irz", "r_wo_FGmarg", "r_w_FGmarg"],
+    header = [
+        "irz",
+        "r_wo_FGmarg",
+        "r_w_FGmarg",
+        "r_SOonly_wo_FGmarg",
+        "r_SOonly_w_FGmarg",
+    ],
 )
