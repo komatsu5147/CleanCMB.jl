@@ -101,6 +101,28 @@ cls_th_binned = w.decouple_cell(w.couple_cell(cls_th))
 clt_th = [clt["ee"], zero(clt["ee"]), zero(clt["bb"]), clt["bb"]] * Tcmb^2
 clt_th_binned = w.decouple_cell(w.couple_cell(clt_th))
 
+# %% Compute covariance matrices of the foreground EE and BB
+# Used to compute the power spectra of residual foreground for checking the results,
+# but this information cannot be used for the real data analysis.
+f3 = []
+for iν = 1:nν
+    push!(
+        f3,
+        nmt.NmtField(
+            mask,
+            [f_q[iν], f_u[iν]],
+            purify_b = true,
+            beam = bPl.(0:lmax, σ[iν]),
+        ),
+    )
+end
+ce3, cb3 = zeros(nν, nν, nbands), zeros(nν, nν, nbands) # foreground
+for iν = 1:nν, jν = iν:nν
+    w.compute_coupling_matrix(f3[iν], f3[jν], b)
+    cl3 = compute_master(f3[iν], f3[jν], w)
+    ce3[iν, jν, :], cb3[iν, jν, :] = cl3[1, :], cl3[4, :]
+end
+
 # %% Loop over realisations
 ee1, bb1 = zeros(nbands, nrz), zeros(nbands, nrz) # Cleaned power spectra
 ee2, bb2 = zeros(nbands, nrz), zeros(nbands, nrz) # Noise power spectra
@@ -125,7 +147,7 @@ for irz = 1:nrz
     nelm, nblm = Alm{ComplexF64}(lmax, mmax), Alm{ComplexF64}(lmax, mmax)
     c_q, c_u = Map{Float64,RingOrder}(nside), Map{Float64,RingOrder}(nside)
     n_q, n_u = Map{Float64,RingOrder}(nside), Map{Float64,RingOrder}(nside)
-    f1, f2, f3 = [], [], [] # List of NaMaster fields
+    f1, f2 = [], [] # List of NaMaster fields
     for iν = 1:nν
         for l = 0:lmax
             ee =
@@ -198,29 +220,16 @@ for irz = 1:nrz
                 beam = bPl.(0:lmax, σ[iν]),
             ),
         )
-        # f3: foreground
-        push!(
-            f3,
-            nmt.NmtField(
-                mask,
-                [f_q[iν], f_u[iν]],
-                purify_b = true,
-                beam = bPl.(0:lmax, σ[iν]),
-            ),
-        )
     end
     ## Compute covariance matrices of EE and BB
     ce1, cb1 = zeros(nν, nν, nbands), zeros(nν, nν, nbands) # total
     ce2, cb2 = zeros(nν, nν, nbands), zeros(nν, nν, nbands) # noise
-    ce3, cb3 = zeros(nν, nν, nbands), zeros(nν, nν, nbands) # foreground
     for iν = 1:nν, jν = iν:nν
         w.compute_coupling_matrix(f1[iν], f1[jν], b)
         cl1 = compute_master(f1[iν], f1[jν], w)
         cl2 = compute_master(f2[iν], f2[jν], w)
-        cl3 = compute_master(f3[iν], f3[jν], w)
         ce1[iν, jν, :], cb1[iν, jν, :] = cl1[1, :], cl1[4, :]
         ce2[iν, jν, :], cb2[iν, jν, :] = cl2[1, :], cl2[4, :]
-        ce3[iν, jν, :], cb3[iν, jν, :] = cl3[1, :], cl3[4, :]
     end
     ## Perform ILC to obtain power spectra of clean maps of the CMB
     we, wb = ilc_weights(ce1), ilc_weights(cb1)
