@@ -94,8 +94,10 @@ Here we provide example codes for *pipelines*, which do everything from generati
   - For your reference, the results from 300 realisations starting with the initial seed of `5147` are given in [examples/results/ilc_results_sosat_300sims_seed5147.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/ilc_results_sosat_300sims_seed5147.csv). You can compute the mean and standard deviation of the tensor-to-scalar ratios. You should find, for 30 < ℓ < 260:
     - Without FG marginalisation: r = (2.0 ± 1.6) x 10<sup>-3</sup>
     - With marginalisation: r = (-1.0 ± 2.7) x 10<sup>-3</sup>
+
 - [examples/ILCPipelineSOSATCCATp.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSATCCATp.jl)
   - Same as above, but add simulated data of the [CCAT-prime](https://www.ccatobservatory.org) at 350, 410, and 850 GHz with specifications given in Table 1 of [Choi et al., JLTP, 199, 1089 (2020)](https://link.springer.com/article/10.1007/s10909-020-02428-z).
+
 - [examples/MILCAPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MILCAPipelineSOSAT.jl)
   - This code performs a hybrid of the maximum likelihood and ILC methods. See [this note](https://github.com/komatsu5147/CleanCMB.jl/tree/master/note_on_ilc_vs_ml.pdf) for the relationship between them.
     - The code applies `loglike_beta()` in harmonic domain to find the best-fitting synchrotron and dust spectral indices (`βs` and `βd`), and calculates weights using the N-component constrained ILC `milca_weights()`.
@@ -117,8 +119,8 @@ The above codes do everything in one go. However, sometimes it is convenient to 
 
 Here we provide example codes for splitting the pipelines into two pieces: (1) Generation of simulated maps and their covariance matrices, and (2) Application of foreground cleaning methods to the covariance matrices.
 
-- [examples/GenerateCovMatrices.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/GenerateCovMatrices.jl): Perform the steps a-e of of the pipeline and write out the covariance matrices to binary files in arrays of `(nν, nν, nbands)` where `nν` is the number of frequency channels and `nbands` is the number of band-powers. It also writes out the binned scalar and tensor power spectra used to generate the simulations to text files.
-- [examples/PerformILC.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/PerformILC.jl) and [examples/PerformMILCA.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/PerformMILCA.jl): Perform the steps f-j of of the pipelin and write out the estimated tensor-to-scalar ratios to a csv file.
+- [examples/GenerateCovMatrices.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/GenerateCovMatrices.jl): Perform the steps (a)-(e) of the pipeline and write out the covariance matrices to binary files in arrays of `(nν, nν, nbands)` where `nν` is the number of frequency channels and `nbands` is the number of band-powers. It also writes out the binned scalar and tensor power spectra used to generate the simulations to text files.
+- [examples/PerformILC.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/PerformILC.jl) and [examples/PerformMILCA.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/PerformMILCA.jl): Perform the steps (f)-(j) of of the pipeline and write out the estimated tensor-to-scalar ratios to a csv file.
 
 ## Acknowledgment
 
