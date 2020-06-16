@@ -119,8 +119,8 @@ The above codes do everything in one go. However, sometimes it is convenient to 
 
 Here we provide example codes for splitting the pipelines into two pieces: (1) Generation of simulated maps and their covariance matrices, and (2) Application of foreground cleaning methods to the covariance matrices.
 
-- [examples/GenerateCovMatrices.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/GenerateCovMatrices.jl): Perform the steps (a)-(e) of the pipeline and write out the covariance matrices to binary files in arrays of `(nν, nν, nbands)` where `nν` is the number of frequency channels and `nbands` is the number of band-powers. It also writes out the binned scalar and tensor power spectra used to generate the simulations to text files.
-- [examples/PerformILC.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/PerformILC.jl) and [examples/PerformMILCA.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/PerformMILCA.jl): Perform the steps (f)-(j) of of the pipeline and write out the estimated tensor-to-scalar ratios to a csv file.
+- [examples/GenerateCovMatrices.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/GenerateCovMatrices.jl): Perform the steps (a)-(e) of the pipeline and write out the covariance matrices to binary files in arrays of `(nν, nν, nbands)` where `nν` is the number of frequency channels and `nbands` is the number of band-powers. It also writes out the binned scalar and tensor power spectra used to generate the simulations to text files.
+- [examples/PerformILC.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/PerformILC.jl) and [examples/PerformMILCA.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/PerformMILCA.jl): Perform the steps (f)-(j) of of the pipeline and write out the estimated tensor-to-scalar ratios to a csv file.
 
 ## Acknowledgment
 
