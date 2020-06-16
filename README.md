@@ -74,6 +74,9 @@ The package contains the following functions to return frequency dependence of f
 - [examples/CleanWMAP.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/CleanWMAP.jl)
   - This code applies `ilc_weights()` in pixel domain to produce a clean map of CMB from the temperature maps of Wilkinson Microwave Anisotropy Probe (WMAP) at five frequency bands.
   - The code requires [Healpix.jl](https://github.com/ziotom78/Healpix.jl).
+
+### Pipelines
+Here we provide example codes for *pipelines*, which do everything from generation of simulated maps to estimation of the cosmological parameter (tensor-to-scalar ratio of the primordial gravitational waves) in one go.
 - [examples/ILCPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSAT.jl)
   - This code applies `ilc_weights()` in harmonic domain to produce power spectra of clean polarisation maps of the CMB.
   - The code requires [Healpix.jl](https://github.com/ziotom78/Healpix.jl) and [Libsharp.jl](https://github.com/ziotom78/Libsharp.jl). It also calls python wrappers [pymaster](https://github.com/LSSTDESC/NaMaster) and [classy](https://github.com/lesgourg/class_public/wiki/Python-wrapper) via `PyCall`.
@@ -108,6 +111,14 @@ The package contains the following functions to return frequency dependence of f
   - For your reference, the results from 300 realisations starting with the initial seed of `5147` are given in [examples/results/milca_results_sosat_300sims_seed5147.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/milca_results_sosat_300sims_seed5147.csv). You can compute the mean and standard deviation of the tensor-to-scalar ratios. You should find, for 30 < ℓ < 260:
       - Without FG marginalisation: r = (1.7 ± 2.9) x 10<sup>-3</sup>
       - With marginalisation: r = (-0.8 ± 4.3) x 10<sup>-3</sup>
+
+### Splitting Pipelines
+The above codes do everything in one go. However, sometimes it is convenient to split the processes. For example, we do not have to re-generate maps and their covariance matrices everytime we make a small modification to the rest of the pipeline.
+
+Here we provide example codes for splitting the pipelines into two pieces: (1) Generation of simulated maps and their covariance matrices, and (2) Application of foreground cleaning methods to the covariance matrices.
+
+- [examples/GenerateCovMatrices.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/GenerateCovMatrices.jl): Perform the steps a-e of of the pipeline and write out the covariance matrices to binary files in arrays of `(nν, nν, nbands)` where `nν` is the number of frequency channels and `nbands` is the number of band-powers. It also writes out the binned scalar and tensor power spectra used to generate the simulations to text files.
+- [examples/PerformILC.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/PerformILC.jl) and [examples/PerformMILCA.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/examples/PerformMILCA.jl): Perform the steps f-j of of the pipelin and write out the estimated tensor-to-scalar ratios to a csv file.
 
 ## Acknowledgment
 
