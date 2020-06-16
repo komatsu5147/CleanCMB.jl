@@ -14,7 +14,13 @@ nrz = 10 # How many realisations?
 Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
 rsim = 0 # Tensor-to-scalar ratio used for the simulation
 Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
-ℓmin, ℓmax = 30, 200 # ℓ range for fitting
+ℓmin, ℓmax = 30, 260 # ℓ range for fitting
+
+# %% Foreground cleaning parameters
+showβ = true # Show the fitted foreground parameters (for the smoothed covariance)?
+βs0, βd0 = -3.0, 1.6 # starting foreground parameters for minimisation of -log(likelihood) by `res = optimize(func, [βs0, βd0])`
+ℓswitch = 50 # the multipole below which the foreground parameters are fitted for each band-power
+smooth_FWHM = 3 # smoothing for the covariance matrix in units of degrees
 
 # %% Specification of the experiment
 # Reference: Simons Observatory Collaboration, JCAP, 02, 056 (2019), Table 1.
@@ -25,6 +31,10 @@ FWHM = [91, 63, 30, 17, 11, 9] # in arcmin
 uKarcmin = [35, 21, 2.6, 3.3, 6.3, 16] # in μK arcmin (for temperature; x√2 for pol)
 lknee = [30, 30, 50, 50, 70, 100]
 αknee = [-2.4, -2.4, -2.5, -3, -3, -3]
+# temperature beam
+bTl(ℓ, σb) = exp(-ℓ * (ℓ + 1) * σb^2 / 2)
+# polarisation beam, Eq.(5.8) of Ng & Liu, Int.J.Mod.Phys.D, 8, 61 (1999)
+bPl(ℓ, σb) = ifelse(ℓ >= 2, exp(-(ℓ * (ℓ + 1) - 4) * σb^2 / 2), 0)
 
 # %% Read in the hits map and calculate weights for inhomogeneous noise
 nhitsfile = "data/nhits_SAT_r7.FITS"
@@ -65,11 +75,10 @@ for iν = 1:nν
         SHARP_DP,
     )
     for l = 0:lmax
-        bl = exp(-l^2 * σ[iν]^2 / 2)
         for m = 0:l
             ilm = alm_index(alm_info, l, m) + 1
-            elm.alm[ilm] *= bl
-            blm.alm[ilm] *= bl
+            elm.alm[ilm] *= bPl(l, σ[iν])
+            blm.alm[ilm] *= bPl(l, σ[iν])
         end
     end
     sharp_execute!(
@@ -99,6 +108,39 @@ cls_th_binned = w.decouple_cell(w.couple_cell(cls_th))
 clt_th = [clt["ee"], zero(clt["ee"]), zero(clt["bb"]), clt["bb"]] * Tcmb^2
 clt_th_binned = w.decouple_cell(w.couple_cell(clt_th))
 
+# %% Compute the noise covariance matrix from the noise model
+# Note that the `ℓ(ℓ+1)/2π` factor is included.
+nij = zeros(nν, nν, nbands)
+for iν = 1:nν, jν = iν:nν
+    ell_fact = ell_eff .* (ell_eff .+ 1) / 2π
+    nij[iν, iν, :] =
+        2 *
+        (uKarcmin[iν] * π / 10800)^2 *
+        (1 .+ (ell_eff / lknee[iν]) .^ αknee[iν]) .* ell_fact
+end
+
+# %% Compute covariance matrices of the foreground EE and BB
+# Used to compute the power spectra of residual foreground for checking the results,
+# but this information cannot be used for the real data analysis.
+f3 = []
+for iν = 1:nν
+    push!(
+        f3,
+        nmt.NmtField(
+            mask,
+            [f_q[iν], f_u[iν]],
+            purify_b = true,
+            beam = bPl.(0:lmax, σ[iν]),
+        ),
+    )
+end
+ce3, cb3 = zeros(nν, nν, nbands), zeros(nν, nν, nbands) # foreground
+for iν = 1:nν, jν = iν:nν
+    w.compute_coupling_matrix(f3[iν], f3[jν], b)
+    cl3 = compute_master(f3[iν], f3[jν], w)
+    ce3[iν, jν, :], cb3[iν, jν, :] = cl3[1, :], cl3[4, :]
+end
+
 # %% Loop over realisations
 ee1, bb1 = zeros(nbands, nrz), zeros(nbands, nrz) # Cleaned power spectra
 ee2, bb2 = zeros(nbands, nrz), zeros(nbands, nrz) # Noise power spectra
@@ -123,12 +165,9 @@ for irz = 1:nrz
     nelm, nblm = Alm{ComplexF64}(lmax, mmax), Alm{ComplexF64}(lmax, mmax)
     c_q, c_u = Map{Float64,RingOrder}(nside), Map{Float64,RingOrder}(nside)
     n_q, n_u = Map{Float64,RingOrder}(nside), Map{Float64,RingOrder}(nside)
-    f1, f2, f3 = [], [], [] # List of NaMaster fields
-    nij = zeros(nν, nν) # Noise covariance matrix for the ML analysis
+    f1, f2 = [], [] # List of NaMaster fields
     for iν = 1:nν
-        nij[iν, iν] = uKarcmin[iν]^2
         for l = 0:lmax
-            bl = exp(-l^2 * σ[iν]^2 / 2)
             ee =
                 2 *
                 (uKarcmin[iν] * π / 10800)^2 *
@@ -139,14 +178,14 @@ for irz = 1:nrz
                 (1 + (l / lknee[iν])^αknee[iν])
             if l >= 2
                 ilm = alm_index(alm_info, l, 0) + 1
-                celm.alm[ilm] = elm.alm[ilm] * bl
-                cblm.alm[ilm] = blm.alm[ilm] * bl
+                celm.alm[ilm] = elm.alm[ilm] * bPl(l, σ[iν])
+                cblm.alm[ilm] = blm.alm[ilm] * bPl(l, σ[iν])
                 nelm.alm[ilm] = √ee * randn(Float64)
                 nblm.alm[ilm] = √bb * randn(Float64)
                 for m = 1:l
                     ilm = alm_index(alm_info, l, m) + 1
-                    celm.alm[ilm] = elm.alm[ilm] * bl
-                    cblm.alm[ilm] = blm.alm[ilm] * bl
+                    celm.alm[ilm] = elm.alm[ilm] * bPl(l, σ[iν])
+                    cblm.alm[ilm] = blm.alm[ilm] * bPl(l, σ[iν])
                     nelm.alm[ilm] = √ee * randn(ComplexF64)
                     nblm.alm[ilm] = √bb * randn(ComplexF64)
                 end
@@ -178,8 +217,6 @@ for irz = 1:nrz
         )
         n_q .*= weight
         n_u .*= weight
-        ell = 0:lmax
-        bl = exp.(-ell .^ 2 * σ[iν]^2 / 2)
         ## Create NaMaster fields for the pseudo-Cℓ
         # f1: foreground + CMB + noise
         push!(
@@ -188,57 +225,92 @@ for irz = 1:nrz
                 mask,
                 [f_q[iν] + c_q + n_q, f_u[iν] + c_u + n_u],
                 purify_b = true,
-                beam = bl,
+                beam = bPl.(0:lmax, σ[iν]),
             ),
         )
         # f2: noise
-        push!(f2, nmt.NmtField(mask, [n_q, n_u], purify_b = true, beam = bl))
-        # f3: foreground
         push!(
-            f3,
-            nmt.NmtField(mask, [f_q[iν], f_u[iν]], purify_b = true, beam = bl),
+            f2,
+            nmt.NmtField(
+                mask,
+                [n_q, n_u],
+                purify_b = true,
+                beam = bPl.(0:lmax, σ[iν]),
+            ),
         )
     end
     ## Compute covariance matrices of EE and BB
     ce1, cb1 = zeros(nν, nν, nbands), zeros(nν, nν, nbands) # total
     ce2, cb2 = zeros(nν, nν, nbands), zeros(nν, nν, nbands) # noise
-    ce3, cb3 = zeros(nν, nν, nbands), zeros(nν, nν, nbands) # foreground
     for iν = 1:nν, jν = iν:nν
         w.compute_coupling_matrix(f1[iν], f1[jν], b)
         cl1 = compute_master(f1[iν], f1[jν], w)
         cl2 = compute_master(f2[iν], f2[jν], w)
-        cl3 = compute_master(f3[iν], f3[jν], w)
         ce1[iν, jν, :], cb1[iν, jν, :] = cl1[1, :], cl1[4, :]
         ce2[iν, jν, :], cb2[iν, jν, :] = cl2[1, :], cl2[4, :]
-        ce3[iν, jν, :], cb3[iν, jν, :] = cl3[1, :], cl3[4, :]
     end
     ## Use Parametric Maximum Likelihood method to obtain power spectra of clean maps of the CMB
     A(x) = [ones(nν) synch.(ν, βs = x[1]) dust1.(ν, βd = x[2])] # Frequency response matrix
-    ibmax = maximum(findall(x -> x <= ℓmax, ell_eff))
-    for ib = 1:ibmax
-        # Calculate weights to clean the B-mode power spectrum
-        func_b(x) = -loglike_beta(nij, A(x), cb1[:, :, ib]) # -log(likelihood) to minimise by `optimize`
-        res = optimize(func_b, [-3, 1.6])
-        # println("B: ℓeff = ", ell_eff[ib])
-        # @show res
-        β = Optim.minimizer(res)
-        B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])] # Best-fitting frequency response of the FG
-        wb = milca_weights(cb2[:, :, ib], ones(nν), B)
-        # Calculate weights to clean the E-mode power spectrum
-        func_e(x) = -loglike_beta(nij, A(x), ce1[:, :, ib]) # -log(likelihood) to minimise by `optimize`
-        res = optimize(func_e, [-3, 1.6])
-        # println("E: ℓeff = ", ell_eff[ib])
-        # @show res
-        β = Optim.minimizer(res)
-        B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])] # Best-fitting frequency response of the FG
-        we = milca_weights(ce2[:, :, ib], ones(nν), B)
-        # Obtain power spectra of clean maps of the CMB
-        ee1[ib, irz], bb1[ib, irz] =
-            ilc_clean_cij(ce1[:, :, ib], we), ilc_clean_cij(cb1[:, :, ib], wb)
-        ee2[ib, irz], bb2[ib, irz] =
-            ilc_clean_cij(ce2[:, :, ib], we), ilc_clean_cij(cb2[:, :, ib], wb)
-        ee3[ib, irz], bb3[ib, irz] =
-            ilc_clean_cij(ce3[:, :, ib], we), ilc_clean_cij(cb3[:, :, ib], wb)
+    # For ℓ > ℓswitch: Apply parametric maximum likelihood method using a smoothed covariance matrix.
+    # Smooth covariance matrices to `smooth_FWHM` resolution
+    func_sum(x, cij) =
+        -sum(
+            (2 * ell_eff[jb] + 1) *
+            loglike_beta(nij[:, :, jb], A(x), cij[:, :, jb]) for jb = 1:nbands
+        ) # -log(likelihood) to minimise by `optimize`
+    ceij, cbij = zeros(nν, nν, nbands), zeros(nν, nν, nbands)
+    for ib = 1:nbands, iν = 1:nν, jν = iν:nν
+        bli, blj = bPl(ell_eff[ib], σ[iν]), bPl(ell_eff[ib], σ[jν])
+        σsmo = smooth_FWHM * π / 180 / sqrt(8 * log(2))
+        bl2 = bPl(ell_eff[ib], σsmo)^2
+        ceij[iν, jν, ib] = ce1[iν, jν, ib] * bl2 / bli / blj
+        cbij[iν, jν, ib] = cb1[iν, jν, ib] * bl2 / bli / blj
+    end
+    res = optimize(x -> func_sum(x, cbij), [βs0, βd0])
+    if showβ
+        println("Fitted parameters: B-mode")
+        @show res
+    end
+    β = Optim.minimizer(res)
+    B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])] # Best-fitting frequency response of the FG
+    wb_smooth = milca_weights(cb1, ones(nν), B)
+    res = optimize(x -> func_sum(x, ceij), [βs0, βd0])
+    if showβ
+        println("Fitted parameters: E-mode")
+        @show res
+    end
+    β = Optim.minimizer(res)
+    B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])] # Best-fitting frequency response of the FG
+    we_smooth = milca_weights(ce1, ones(nν), B)
+    ee1[:, irz], bb1[:, irz] =
+        ilc_clean_cij(ce1, we_smooth), ilc_clean_cij(cb1, wb_smooth)
+    ee2[:, irz], bb2[:, irz] =
+        ilc_clean_cij(ce2, we_smooth), ilc_clean_cij(cb2, wb_smooth)
+    ee3[:, irz], bb3[:, irz] =
+        ilc_clean_cij(ce3, we_smooth), ilc_clean_cij(cb3, wb_smooth)
+    # For for ℓ ≤ ℓswitch: Apply parametric maximum likelihood method for each band-power.
+    iib = findall(x -> x ≤ ℓswitch, ell_eff)
+    if iib ≠ []
+        for ib = 1:maximum(iib)
+            func(x, cij) =
+                -(2 * ell_eff[ib] + 1) * loglike_beta(nij[:, :, ib], A(x), cij)
+            res = optimize(x -> func(x, cb1[:, :, ib]), [βs0, βd0])
+            #@show res
+            β = Optim.minimizer(res)
+            B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])]
+            wb = milca_weights(cb1[:, :, ib], ones(nν), B)
+            res = optimize(x -> func(x, ce1[:, :, ib]), [βs0, βd0])
+            #@show res
+            β = Optim.minimizer(res)
+            B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])]
+            we = milca_weights(ce1[:, :, ib], ones(nν), B)
+            ee1[ib, irz], bb1[ib, irz] = ilc_clean_cij(ce1[:, :, ib], we),
+            ilc_clean_cij(cb1[:, :, ib], wb)
+            ee2[ib, irz], bb2[ib, irz] = ilc_clean_cij(ce2[:, :, ib], we),
+            ilc_clean_cij(cb2[:, :, ib], wb)
+            ee3[ib, irz], bb3[ib, irz] = ilc_clean_cij(ce3[:, :, ib], we),
+            ilc_clean_cij(cb3[:, :, ib], wb)
+        end
     end
     # Show power spectra for visual inspection
     if showresults
@@ -261,60 +333,24 @@ for irz = 1:nrz
             (rsim / rclass) * clt_th_binned[4, :],
             label = "True BB",
         )
-        p = plot!(
-            ell_eff[1:ibmax],
-            ee1[1:ibmax, irz],
-            m = :circle,
-            lab = "Cleaned EE",
-        )
-        p = plot!(
-            ell_eff[1:ibmax],
-            bb1[1:ibmax, irz],
-            m = :circle,
-            lab = "Cleaned BB",
-        )
-        p = plot!(
-            ell_eff[1:ibmax],
-            ee2[1:ibmax, irz],
-            m = :diamond,
-            lab = "Noise EE",
-        )
-        p = plot!(
-            ell_eff[1:ibmax],
-            bb2[1:ibmax, irz],
-            m = :diamond,
-            lab = "Noise BB",
-        )
-        p = plot!(
-            ell_eff[1:ibmax],
-            ee3[1:ibmax, irz],
-            m = :star5,
-            lab = "FG EE",
-        )
-        p = plot!(
-            ell_eff[1:ibmax],
-            bb3[1:ibmax, irz],
-            m = :star5,
-            lab = "FG BB",
-        )
+        p = plot!(ell_eff, ee1[:, irz], m = :circle, lab = "Cleaned EE")
+        p = plot!(ell_eff, bb1[:, irz], m = :circle, lab = "Cleaned BB")
+        p = plot!(ell_eff, ee2[:, irz], m = :diamond, lab = "Noise EE")
+        p = plot!(ell_eff, bb2[:, irz], m = :diamond, lab = "Noise BB")
+        p = plot!(ell_eff, ee3[:, irz], m = :star5, lab = "FG EE")
+        p = plot!(ell_eff, bb3[:, irz], m = :star5, lab = "FG BB")
         display(p)
     end
 end
 
 # %% Calculate the mean power spectra and variance
-me1, mb1 = zeros(ibmax), zeros(ibmax) # Mean total power spectra
-ve1, vb1 = zeros(ibmax), zeros(ibmax) # Variance of total power spectra
-me2, mb2 = zeros(ibmax), zeros(ibmax) # Mean noise power spectra
-me3, mb3 = zeros(ibmax), zeros(ibmax) # Mean residual FG power spectra
-for ib = 1:ibmax
-    me1[ib], mb1[ib] = mean(ee1[ib, :]), mean(bb1[ib, :])
-    ve1[ib], vb1[ib] = var(ee1[ib, :]), var(bb1[ib, :])
-    me2[ib], mb2[ib] = mean(ee2[ib, :]), mean(bb2[ib, :])
-    me3[ib], mb3[ib] = mean(ee3[ib, :]), mean(bb3[ib, :])
-end
-# Plot and save to "ml_clbb_sim_sosat.pdf"
+me1, mb1 = mean(ee1, dims = 2), mean(bb1, dims = 2)
+ve1, vb1 = var(ee1, dims = 2), var(bb1, dims = 2)
+me2, mb2 = mean(ee2, dims = 2), mean(bb2, dims = 2)
+me3, mb3 = mean(ee3, dims = 2), mean(bb3, dims = 2)
+# Plot and save to "milca_clbb_sim_sosat.pdf"
+ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
 if showresults
-    ii = findall(x -> x >= ℓmin && x <= ℓmax, ell_eff)
     p = scatter(
         ell_eff[ii],
         mb1[ii],
@@ -339,7 +375,7 @@ if showresults
         lab = "Binned tensor",
         ls = :dash,
     )
-    savefig("ml_clbb_sim_sosat.pdf")
+    savefig("milca_clbb_sim_sosat.pdf")
     display(p)
 end
 
@@ -374,7 +410,7 @@ println("- Fisher error = ", √Cij[1, 1])
 # %% Save to the file
 t = Tables.table([1:nrz r w[:, 1]])
 CSV.write(
-    "ml_results_sosat.csv",
+    "milca_results_sosat.csv",
     t,
     header = ["irz", "r_wo_FGmarg", "r_w_FGmarg"],
 )
