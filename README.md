@@ -97,18 +97,17 @@ The package contains the following functions to return frequency dependence of f
   - This code performs a hybrid of the maximum likelihood and ILC methods. See [this note](https://github.com/komatsu5147/CleanCMB.jl/tree/master/note_on_ilc_vs_ml.pdf) for the relationship between them.
     - The code applies `loglike_beta()` in harmonic domain to find the best-fitting synchrotron and dust spectral indices (`βs` and `βd`), and calculates weights using the N-component constrained ILC `milca_weights()`.
     - When calculating the weights, it uses the total covariance matrix `cij` (like for the ILC) rather than the noise covariance matrix `nij` (like for the maximum likelihood). This minimises further the foreground contribution that is not modeled.
-  - The code performs the same operations as the above [ILC pipeline](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSAT.jl) for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org), but replaces the steps 6 and 7 with
+  - The code performs the same operations as the above [ILC pipeline](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSAT.jl) for the Small Aperture Telescope (SAT) of the [Simons Observatory](https://simonsobservatory.org), but replaces the steps f and g with
 
-    6. Calculate the best-fitting synchrotron and dust indices (`βs` and `βd`) by minimising `-loglike_beta()` with respect to them.
+    6. Calculate the best-fitting `βs` and `βd` by minimising `-loglike_beta()` with respect to them.
     7. Calculate weights using `milca_weights()` with the best-fitting `βs` and `βd`, and calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
 
   - More detail of the procedure:
-    - The code finds the best-fitting `βs` and `βd` for each band-power at multipoles below the "switching" multipole, `ℓ ≤ ℓswitch`. (The default is `ℓswitch = 50`). This may better handle complex foreground properties on large angular scales.
-    - For higher multipoles, the code finds the global `βs` and `βd` using the covariance matrix smoothed to a given resolution specified by `smooth_FWHM` (in units of degrees; the default is `smooth_FWHM = 3`). This is equivalent to finding `βs` and `βd` on smoothed maps.
+    - The code finds the best-fitting `βs` and `βd` for each band-power at multipoles below the "switching" multipole, `ℓ ≤ ℓswitch` (the default value is `ℓswitch = 50`). This may better handle complex foreground properties on large angular scales.
+    - For higher multipoles, the code finds the global `βs` and `βd` using the covariance matrix smoothed to a given resolution specified by `smooth_FWHM` (in units of degrees; the default value is `smooth_FWHM = 3`). This is equivalent to finding `βs` and `βd` on smoothed maps.
   - For your reference, the results from 300 realisations starting with the initial seed of `5147` are given in [examples/results/milca_results_sosat_300sims_seed5147.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/milca_results_sosat_300sims_seed5147.csv). You can compute the mean and standard deviation of the tensor-to-scalar ratios. You should find, for 30 < ℓ < 260:
       - Without FG marginalisation: r = (1.7 ± 2.9) x 10<sup>-3</sup>
       - With marginalisation: r = (-0.8 ± 4.3) x 10<sup>-3</sup>
-      - r = 0.0017428111055474008 ± 0.002866942729875086
 
 ## Acknowledgment
 
