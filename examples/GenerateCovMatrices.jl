@@ -1,7 +1,7 @@
 using Healpix, Libsharp
 using PyCall
 using Random, Statistics
-using Printf
+using Printf, Tables
 # %% Simulation parameters
 nrz = 10 # How many realisations?
 Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
