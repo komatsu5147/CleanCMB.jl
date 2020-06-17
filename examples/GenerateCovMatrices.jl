@@ -1,7 +1,7 @@
 using Healpix, Libsharp
 using PyCall
 using Random, Statistics
-using Printf, Tables
+using Printf, Tables, CSV
 # %% Simulation parameters
 nrz = 10 # How many realisations?
 Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
@@ -99,8 +99,6 @@ CSV.write(
     Tables.table([ell_eff cls_th_binned[1, :] cls_th_binned[4, :]]),
     header = ["leff", "ee", "bb"],
 )
-clt_th = [clet, zero(clet), zero(clbt), clbt]
-clt_th_binned = w.decouple_cell(w.couple_cell(clt_th))
 CSV.write(
     "tensor_eebb_binned.csv",
     Tables.table([ell_eff clt_th_binned[1, :] clt_th_binned[4, :]]),
