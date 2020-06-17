@@ -9,7 +9,7 @@ nrz = 10
 Alens = 1
 # %% Specification of the experiments
 ν = [27, 39, 93, 145, 225, 280, 350, 410, 850] # in GHz
-νused = [true, true, true, true, true, true, false, true, true] # Which frequencies to use for fitting?
+νused = [true, true, true, true, true, true, true, true, true] # Which frequencies to use for fitting?
 nν = length(ν)
 kν = findall(x -> x == true, νused)
 # %% Read in binned theory power spectra
