@@ -8,9 +8,10 @@ nrz = 10
 ℓmin, ℓmax = 30, 260 # ℓ range for fitting
 Alens = 1
 # %% Specification of the experiments
-νused = [1, 2, 3, 4, 5, 6, 7, 8, 9] # Which frequencies to use for fitting?
 ν = [27, 39, 93, 145, 225, 280, 350, 410, 850] # in GHz
+νused = [true, true, true, true, true, true, false, true, true] # Which frequencies to use for fitting?
 nν = length(ν)
+kν = findall(x -> x == true, νused)
 # %% Read in binned theory power spectra
 clt_th = CSV.read("tensor_eebb_binned.csv")
 cls_th = CSV.read("scalar_eebb_binned.csv")
@@ -29,10 +30,10 @@ for irz = 1:nrz
     io = open(@sprintf("cov_bb_noise_irz%03d.dat", irz), "r")
     cov2 = Mmap.mmap(io, Array{Float64,3}, (nν, nν, nbands))
     close(io)
-    w = ilc_weights(cov1[νused, νused, :])
-    cl1[:, irz] = ilc_clean_cij(cov1[νused, νused, :], w)
-    cl2[:, irz] = ilc_clean_cij(cov2[νused, νused, :], w)
-    cl3[:, irz] = ilc_clean_cij(cov3[νused, νused, :], w)
+    w = ilc_weights(cov1[kν, kν, :])
+    cl1[:, irz] = ilc_clean_cij(cov1[kν, kν, :], w)
+    cl2[:, irz] = ilc_clean_cij(cov2[kν, kν, :], w)
+    cl3[:, irz] = ilc_clean_cij(cov3[kν, kν, :], w)
 end
 m1, m2, m3 = mean(cl1, dims = 2), mean(cl2, dims = 2), mean(cl3, dims = 2)
 v1 = var(cl1, dims = 2)
@@ -55,7 +56,7 @@ for irz = 1:nrz
     w[irz, 1:2] = Fij \ z
 end
 println("Fitted ℓs: ", ell_eff[ii])
-println("Used νs: ", ν[νused], " GHz")
+println("Used νs: ", ν[kν], " GHz")
 println("Without foreground marginalisation:")
 println("- r = ", mean(r), " ± ", std(r))
 println("- Fisher error = ", 1 / √sum(y1 .^ 2 ./ v))
