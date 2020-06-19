@@ -1,5 +1,5 @@
 using CleanCMB
-using Optim
+using Optim, LinearAlgebra
 using Printf, CSV
 using Mmap
 using Statistics, Plots
@@ -10,9 +10,12 @@ nrz = 10
 Alens = 1
 # %% Foreground cleaning parameters
 showβ = true # Show the fitted foreground parameters (for the smoothed covariance)?
-βs0, βd0 = -3.0, 1.6 # starting foreground parameters for minimisation of -log(likelihood) by `res = optimize(func, [βs0, βd0])`
+β0 = βs0, βd0, Td0 = [-3.0, 1.6, 19.6] # starting foreground parameters for minimisation of -log(likelihood) by `res = optimize(func, [βs0, βd0, Td0])`
 ℓswitch = 50 # the multipole below which the foreground parameters are fitted for each band-power
 smooth_FWHM = 3 # smoothing for the covariance matrix in units of degrees
+σβ = σβs, σβd, σTd = [0.5, 0.5, 5] # Gaussian priors: -2*log(likelihood) = (x[1] - βs0)^2 / σβs^2 + (x[2] - βd0)^2 / σβd^2 + (x[3] - Td0)^2 / σTd^2
+Σβ = Diagonal(σβ .^ 2)
+lnlike_fgprior(x) = -0.5 * (x .- β0)' * (Σβ \ (x .- β0))
 # %% Specification of the experiments
 ν = [27, 39, 93, 145, 225, 280, 350, 410, 850] # in GHz
 νused = [true, true, true, true, true, true, true, true, true] # Which frequencies to use for fitting?
@@ -55,11 +58,12 @@ for irz = 1:nrz
     A(x) = [ones(length(kν)) synch.(ν[kν], βs = x[1]) dust1.(
         ν[kν],
         βd = x[2],
+        Td = x[3],
     )] # Frequency response matrix
     # For ℓ > ℓswitch: Apply parametric maximum likelihood method using a smoothed covariance matrix.
     # Smooth covariance matrices to `smooth_FWHM` resolution
     func_sum(x, cij) =
-        -sum(
+        -lnlike_fgprior(x) - sum(
             (2 * ell_eff[jb] + 1) *
             loglike_beta(nij[kν, kν, jb], A(x), cij[kν, kν, jb])
             for jb = 1:nbands
@@ -71,13 +75,13 @@ for irz = 1:nrz
         bl2 = bPl(ell_eff[ib], σsmo)^2
         cij[iν, jν, ib] = cov1[iν, jν, ib] * bl2 / bli / blj
     end
-    res = optimize(x -> func_sum(x, cij[kν, kν, :]), [βs0, βd0])
+    res = optimize(x -> func_sum(x, cij[kν, kν, :]), β0)
     if showβ
         println("Fitted parameters: B-mode")
         @show res
     end
     β = Optim.minimizer(res)
-    B = [synch.(ν[kν], βs = β[1]) dust1.(ν[kν], βd = β[2])] # Best-fitting frequency response of the FG
+    B = [synch.(ν[kν], βs = β[1]) dust1.(ν[kν], βd = β[2], Td = β[3])] # Best-fitting frequency response of the FG
     w_smooth = milca_weights(cov1[kν, kν, :], ones(length(kν)), B)
     cl1[:, irz] = ilc_clean_cij(cov1[kν, kν, :], w_smooth)
     cl2[:, irz] = ilc_clean_cij(cov2[kν, kν, :], w_smooth)
@@ -87,12 +91,12 @@ for irz = 1:nrz
     if iib ≠ []
         for ib = 1:maximum(iib)
             func(x, cij) =
-                -(2 * ell_eff[ib] + 1) *
-                loglike_beta(nij[kν, kν, ib], A(x), cij)
-            res = optimize(x -> func(x, cov1[kν, kν, ib]), [βs0, βd0])
+                -lnlike_fgprior(x) -
+                (2 * ell_eff[ib] + 1) * loglike_beta(nij[kν, kν, ib], A(x), cij)
+            res = optimize(x -> func(x, cov1[kν, kν, ib]), β0)
             #@show res
             β = Optim.minimizer(res)
-            B = [synch.(ν[kν], βs = β[1]) dust1.(ν[kν], βd = β[2])]
+            B = [synch.(ν[kν], βs = β[1]) dust1.(ν[kν], βd = β[2], Td = β[3])]
             w = milca_weights(cov1[kν, kν, ib], ones(length(kν)), B)
             cl1[ib, irz] = ilc_clean_cij(cov1[kν, kν, ib], w)
             cl2[ib, irz] = ilc_clean_cij(cov2[kν, kν, ib], w)
