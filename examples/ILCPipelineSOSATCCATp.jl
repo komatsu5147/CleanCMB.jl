@@ -240,6 +240,7 @@ for irz = 1:nrz
     ee1[:, irz], bb1[:, irz] = ilc_clean_cij(ce1, we), ilc_clean_cij(cb1, wb)
     ee2[:, irz], bb2[:, irz] = ilc_clean_cij(ce2, we), ilc_clean_cij(cb2, wb)
     ee3[:, irz], bb3[:, irz] = ilc_clean_cij(ce3, we), ilc_clean_cij(cb3, wb)
+    # SO only
     we, wb =
         ilc_weights(ce1[1:nνSO, 1:nνSO, :]), ilc_weights(cb1[1:nνSO, 1:nνSO, :])
     ee1SO[:, irz], bb1SO[:, irz] = ilc_clean_cij(ce1[1:nνSO, 1:nνSO, :], we),
