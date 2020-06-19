@@ -95,9 +95,6 @@ Here we provide example codes for *pipelines*, which do everything from generati
     - Without FG marginalisation: r = (2.0 ± 1.6) x 10<sup>-3</sup>
     - With marginalisation: r = (-1.0 ± 2.7) x 10<sup>-3</sup>
 
-- [examples/ILCPipelineSOSATCCATp.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSATCCATp.jl)
-  - Same as above, but add simulated data of the [CCAT-prime](https://www.ccatobservatory.org) at 350, 410, and 850 GHz with specifications given in Table 1 of [Choi et al., JLTP, 199, 1089 (2020)](https://link.springer.com/article/10.1007/s10909-020-02428-z).
-
 - [examples/MILCAPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MILCAPipelineSOSAT.jl)
   - This code performs a hybrid of the maximum likelihood and ILC methods. See [this note](https://github.com/komatsu5147/CleanCMB.jl/tree/master/note_on_ilc_vs_ml.pdf) for the relationship between them.
     - The code applies `loglike_beta()` in harmonic domain to find the best-fitting synchrotron and dust spectral indices (`βs` and `βd`), and calculates weights using the N-component constrained ILC `milca_weights()`.
@@ -114,6 +111,13 @@ Here we provide example codes for *pipelines*, which do everything from generati
       - Without FG marginalisation: r = (1.7 ± 2.9) x 10<sup>-3</sup>
       - With marginalisation: r = (-0.8 ± 4.3) x 10<sup>-3</sup>
 
+- [examples/ILCPipelineSOSATCCATp.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSATCCATp.jl)
+  - Same as [examples/ILCPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSAT.jl), but add simulated data of the [CCAT-prime](https://www.ccatobservatory.org) at 350, 410, and 850 GHz with specifications given in Table 1 of [Choi et al., JLTP, 199, 1089 (2020)](https://link.springer.com/article/10.1007/s10909-020-02428-z).
+
+- [examples/MILCAPipelineSOSATCCATp.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examplesMILCAPipelineSOSATCCATp.jl)
+  - Same as [examples/MILCAPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MILCAPipelineSOSAT.jl), but varies the dust temperature `Td` as the third foreground parameter, and use Gaussian priors for `βs`, `βd` and `Td`.
+  - Add simulated data of the [CCAT-prime](https://www.ccatobservatory.org) at 350, 410, and 850 GHz with specifications given in Table 1 of [Choi et al., JLTP, 199, 1089 (2020)](https://link.springer.com/article/10.1007/s10909-020-02428-z).
+
 ### Splitting Pipelines
 The above codes do everything in one go. However, sometimes it is convenient to split the processes. For example, we do not have to re-generate maps and their covariance matrices everytime we make a small modification to the rest of the pipeline.
 
@@ -121,6 +125,7 @@ Here we provide example codes for splitting the pipelines into two pieces: (1) G
 
 - [examples/GenerateCovMatrices.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/GenerateCovMatrices.jl): Perform the steps (a)-(e) of the pipeline and write out the covariance matrices to binary files in arrays of `(nν, nν, nbands)` where `nν` is the number of frequency channels and `nbands` is the number of band-powers. It also writes out the binned scalar and tensor power spectra used to generate the simulations to text files.
 - [examples/PerformILC.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/PerformILC.jl) and [examples/PerformMILCA.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/PerformMILCA.jl): Perform the steps (f)-(j) of of the pipeline and write out the estimated tensor-to-scalar ratios to a csv file.
+  - **Note**: [examples/PerformMILCA.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/PerformMILCA.jl) varies three parameters, `βs`, `βd` and `Td` with Gaussian priors.
 
 ## Acknowledgment
 
