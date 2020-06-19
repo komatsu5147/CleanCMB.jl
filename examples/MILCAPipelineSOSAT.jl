@@ -18,7 +18,7 @@ Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
 
 # %% Foreground cleaning parameters
 showβ = true # Show the fitted foreground parameters (for the smoothed covariance)?
-βs0, βd0 = -3.0, 1.6 # starting foreground parameters for minimisation of -log(likelihood) by `res = optimize(func, [βs0, βd0])`
+β0 = βs0, βd0 = [-3.0, 1.6] # starting foreground parameters for minimisation of -log(likelihood) by `res = optimize(func, [βs0, βd0])`
 ℓswitch = 50 # the multipole below which the foreground parameters are fitted for each band-power
 smooth_FWHM = 3 # smoothing for the covariance matrix in units of degrees
 
@@ -266,7 +266,7 @@ for irz = 1:nrz
         ceij[iν, jν, ib] = ce1[iν, jν, ib] * bl2 / bli / blj
         cbij[iν, jν, ib] = cb1[iν, jν, ib] * bl2 / bli / blj
     end
-    res = optimize(x -> func_sum(x, cbij), [βs0, βd0])
+    res = optimize(x -> func_sum(x, cbij), β0)
     if showβ
         println("Fitted parameters: B-mode")
         @show res
@@ -274,7 +274,7 @@ for irz = 1:nrz
     β = Optim.minimizer(res)
     B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])] # Best-fitting frequency response of the FG
     wb_smooth = milca_weights(cb1, ones(nν), B)
-    res = optimize(x -> func_sum(x, ceij), [βs0, βd0])
+    res = optimize(x -> func_sum(x, ceij), β0)
     if showβ
         println("Fitted parameters: E-mode")
         @show res
@@ -294,12 +294,12 @@ for irz = 1:nrz
         for ib = 1:maximum(iib)
             func(x, cij) =
                 -(2 * ell_eff[ib] + 1) * loglike_beta(nij[:, :, ib], A(x), cij)
-            res = optimize(x -> func(x, cb1[:, :, ib]), [βs0, βd0])
+            res = optimize(x -> func(x, cb1[:, :, ib]), β0)
             #@show res
             β = Optim.minimizer(res)
             B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])]
             wb = milca_weights(cb1[:, :, ib], ones(nν), B)
-            res = optimize(x -> func(x, ce1[:, :, ib]), [βs0, βd0])
+            res = optimize(x -> func(x, ce1[:, :, ib]), β0)
             #@show res
             β = Optim.minimizer(res)
             B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])]
