@@ -354,7 +354,7 @@ for irz = 1:nrz
                 -lnlike_fgprior(x) -
                 (2 * ell_eff[ib] + 1) *
                 loglike_beta(nij[1:nνSO, 1:nνSO, ib], ASO(x), cij)
-            res = optimize(x -> funcSO(x, cbij[1:nνSO, 1:nνSO, ib]), β0)
+            res = optimize(x -> funcSO(x, cb1[1:nνSO, 1:nνSO, ib]), β0)
             β = Optim.minimizer(res)
             B = [synch.(ν[1:nνSO], βs = β[1]) dust1.(
                 ν[1:nνSO],
@@ -362,7 +362,7 @@ for irz = 1:nrz
                 Td = β[3],
             )] # Best-fitting frequency response of the FG
             wb = milca_weights(cb1[1:nνSO, 1:nνSO, ib], ones(nνSO), B)
-            res = optimize(x -> funcSO(x, ceij[1:nνSO, 1:nνSO, ib]), β0)
+            res = optimize(x -> funcSO(x, ce1[1:nνSO, 1:nνSO, ib]), β0)
             β = Optim.minimizer(res)
             B = [synch.(ν[1:nνSO], βs = β[1]) dust1.(
                 ν[1:nνSO],
