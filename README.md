@@ -114,7 +114,7 @@ Here we provide example codes for *pipelines*, which do everything from generati
 - [examples/ILCPipelineSOSATCCATp.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSATCCATp.jl)
   - Same as [examples/ILCPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSAT.jl), but add simulated data of the [CCAT-prime](https://www.ccatobservatory.org) at 350, 410, and 850 GHz with specifications given in Table 1 of [Choi et al., JLTP, 199, 1089 (2020)](https://link.springer.com/article/10.1007/s10909-020-02428-z).
 
-- [examples/MILCAPipelineSOSATCCATp.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examplesMILCAPipelineSOSATCCATp.jl)
+- [examples/MILCAPipelineSOSATCCATp.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MILCAPipelineSOSATCCATp.jl)
   - Same as [examples/MILCAPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/MILCAPipelineSOSAT.jl), but vary the dust temperature `Td` as the third foreground parameter, and use Gaussian priors for `βs`, `βd` and `Td`.
   - Also add simulated data of the [CCAT-prime](https://www.ccatobservatory.org) at 350, 410, and 850 GHz with specifications given in Table 1 of [Choi et al., JLTP, 199, 1089 (2020)](https://link.springer.com/article/10.1007/s10909-020-02428-z).
 
