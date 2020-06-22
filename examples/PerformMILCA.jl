@@ -62,19 +62,19 @@ for irz = 1:nrz
         Td = x[3],
     )] # Frequency response matrix
     # For ℓ > ℓswitch: Apply parametric maximum likelihood method using a smoothed covariance matrix.
-    # Smooth covariance matrices to `smooth_FWHM` resolution
     func_sum(x, cij) =
         -lnlike_fgprior(x) - sum(
             (2 * ell_eff[jb] + 1) *
             loglike_beta(nij[kν, kν, jb], A(x), cij[kν, kν, jb])
             for jb = 1:nbands
         ) # -log(likelihood) to minimise by `optimize`
+    # Smooth covariance matrices to `smooth_FWHM` resolution
     cij = zeros(nν, nν, nbands)
     σsmo = smooth_FWHM * π / 180 / sqrt(8 * log(2))
     for ib = 1:nbands
         cij[:, :, ib] = cov1[:, :, ib] * bPl(ell_eff[ib], σsmo)^2
     end
-    res = optimize(x -> func_sum(x, cij[kν, kν, :]), β0)
+    res = optimize(x -> func_sum(x, cij), β0)
     if showβ
         println("Fitted parameters: B-mode")
         @show res
@@ -91,8 +91,9 @@ for irz = 1:nrz
         for ib = 1:maximum(iib)
             func(x, cij) =
                 -lnlike_fgprior(x) -
-                (2 * ell_eff[ib] + 1) * loglike_beta(nij[kν, kν, ib], A(x), cij)
-            res = optimize(x -> func(x, cov1[kν, kν, ib]), β0)
+                (2 * ell_eff[ib] + 1) *
+                loglike_beta(nij[kν, kν, ib], A(x), cij[kν, kν, ib])
+            res = optimize(x -> func(x, cov1), β0)
             #@show res
             β = Optim.minimizer(res)
             B = [synch.(ν[kν], βs = β[1]) dust1.(ν[kν], βd = β[2], Td = β[3])]

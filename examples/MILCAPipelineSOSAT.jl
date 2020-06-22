@@ -253,12 +253,12 @@ for irz = 1:nrz
     ## Use Parametric Maximum Likelihood method to obtain power spectra of clean maps of the CMB
     A(x) = [ones(nν) synch.(ν, βs = x[1]) dust1.(ν, βd = x[2])] # Frequency response matrix
     # For ℓ > ℓswitch: Apply parametric maximum likelihood method using a smoothed covariance matrix.
-    # Smooth covariance matrices to `smooth_FWHM` resolution
     func_sum(x, cij) =
         -sum(
             (2 * ell_eff[jb] + 1) *
             loglike_beta(nij[:, :, jb], A(x), cij[:, :, jb]) for jb = 1:nbands
         ) # -log(likelihood) to minimise by `optimize`
+    # Smooth covariance matrices to `smooth_FWHM` resolution
     ceij, cbij = zeros(nν, nν, nbands), zeros(nν, nν, nbands)
     σsmo = smooth_FWHM * π / 180 / sqrt(8 * log(2))
     for ib = 1:nbands
@@ -292,13 +292,14 @@ for irz = 1:nrz
     if iib ≠ []
         for ib = 1:maximum(iib)
             func(x, cij) =
-                -(2 * ell_eff[ib] + 1) * loglike_beta(nij[:, :, ib], A(x), cij)
-            res = optimize(x -> func(x, cb1[:, :, ib]), β0)
+                -(2 * ell_eff[ib] + 1) *
+                loglike_beta(nij[:, :, ib], A(x), cij[:, :, ib])
+            res = optimize(x -> func(x, cb1), β0)
             #@show res
             β = Optim.minimizer(res)
             B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])]
             wb = milca_weights(cb1[:, :, ib], ones(nν), B)
-            res = optimize(x -> func(x, ce1[:, :, ib]), β0)
+            res = optimize(x -> func(x, ce1), β0)
             #@show res
             β = Optim.minimizer(res)
             B = [synch.(ν, βs = β[1]) dust1.(ν, βd = β[2])]
