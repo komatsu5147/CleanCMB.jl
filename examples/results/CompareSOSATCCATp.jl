@@ -87,9 +87,9 @@ p = plot!(
 )
 p = plot!(
     milca.r_wo_FGmarg,
-    milca.r_wo_FGmarg .+ 1e-3,
+    milca.r_wo_FGmarg .+ 0.84e-3,
     lw = 2,
-    lab = "r(SAT only) = r(SAT+CCATp) + 0.66e-3",
+    lab = "r(SAT only) = r(SAT+CCATp) + 0.84e-3",
 )
 p = histogram!(
     milca.r_SOonly_wo_FGmarg,

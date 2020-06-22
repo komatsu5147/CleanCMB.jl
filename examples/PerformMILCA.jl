@@ -11,8 +11,8 @@ Alens = 1
 # %% Foreground cleaning parameters
 showβ = true # Show the fitted foreground parameters (for the smoothed covariance)?
 β0 = βs0, βd0, Td0 = [-3.0, 1.6, 19.6] # starting foreground parameters for minimisation of -log(likelihood) by `res = optimize(func, [βs0, βd0, Td0])`
-ℓswitch = 50 # the multipole below which the foreground parameters are fitted for each band-power
-smooth_FWHM = 3 # smoothing for the covariance matrix in units of degrees
+ℓswitch = 30 # the multipole below which the foreground parameters are fitted for each band-power
+smooth_FWHM = 0.5 # smoothing for the covariance matrix in units of degrees
 σβ = σβs, σβd, σTd = [0.5, 0.5, 5] # Gaussian priors: -2*log(likelihood) = (x[1] - βs0)^2 / σβs^2 + (x[2] - βd0)^2 / σβd^2 + (x[3] - Td0)^2 / σTd^2
 Σβ = Diagonal(σβ .^ 2)
 lnlike_fgprior(x) = -0.5 * (x .- β0)' * (Σβ \ (x .- β0))
@@ -47,12 +47,13 @@ for irz = 1:nrz
     cov2 = Mmap.mmap(io, Array{Float64,3}, (nν, nν, nbands))
     close(io)
     nij = zeros(nν, nν, nbands) # Noise covariance matrix for the ML analysis
-    for iν = 1:nν, jν = iν:nν
+    for iν = 1:nν
         ell_fact = ell_eff .* (ell_eff .+ 1) / 2π
         nij[iν, iν, :] =
             2 *
             (uKarcmin[iν] * π / 10800)^2 *
-            (1 .+ (ell_eff / lknee[iν]) .^ αknee[iν]) .* ell_fact
+            (1 .+ (ell_eff / lknee[iν]) .^ αknee[iν]) .* ell_fact .*
+            bPl.(ell_eff, σ[iν]) .^ -2
     end
     ## Use Parametric Maximum Likelihood method to obtain power spectra of clean maps of the CMB
     A(x) = [ones(length(kν)) synch.(ν[kν], βs = x[1]) dust1.(
@@ -69,11 +70,9 @@ for irz = 1:nrz
             for jb = 1:nbands
         ) # -log(likelihood) to minimise by `optimize`
     cij = zeros(nν, nν, nbands)
-    for ib = 1:nbands, iν = 1:nν, jν = iν:nν
-        bli, blj = bPl(ell_eff[ib], σ[iν]), bPl(ell_eff[ib], σ[jν])
-        σsmo = smooth_FWHM * π / 180 / sqrt(8 * log(2))
-        bl2 = bPl(ell_eff[ib], σsmo)^2
-        cij[iν, jν, ib] = cov1[iν, jν, ib] * bl2 / bli / blj
+    σsmo = smooth_FWHM * π / 180 / sqrt(8 * log(2))
+    for ib = 1:nbands
+        cij[:, :, ib] = cov1[:, :, ib] * bPl(ell_eff[ib], σsmo)^2
     end
     res = optimize(x -> func_sum(x, cij[kν, kν, :]), β0)
     if showβ

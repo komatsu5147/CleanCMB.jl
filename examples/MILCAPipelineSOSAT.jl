@@ -19,8 +19,8 @@ Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
 # %% Foreground cleaning parameters
 showβ = true # Show the fitted foreground parameters (for the smoothed covariance)?
 β0 = βs0, βd0 = [-3.0, 1.6] # starting foreground parameters for minimisation of -log(likelihood) by `res = optimize(func, [βs0, βd0])`
-ℓswitch = 50 # the multipole below which the foreground parameters are fitted for each band-power
-smooth_FWHM = 3 # smoothing for the covariance matrix in units of degrees
+ℓswitch = 30 # the multipole below which the foreground parameters are fitted for each band-power
+smooth_FWHM = 0.5 # smoothing for the covariance matrix in units of degrees
 
 # %% Specification of the experiment
 # Reference: Simons Observatory Collaboration, JCAP, 02, 056 (2019), Table 1.
@@ -111,12 +111,13 @@ clt_th_binned = w.decouple_cell(w.couple_cell(clt_th))
 # %% Compute the noise covariance matrix from the noise model
 # Note that the `ℓ(ℓ+1)/2π` factor is included.
 nij = zeros(nν, nν, nbands)
-for iν = 1:nν, jν = iν:nν
+for iν = 1:nν
     ell_fact = ell_eff .* (ell_eff .+ 1) / 2π
     nij[iν, iν, :] =
         2 *
         (uKarcmin[iν] * π / 10800)^2 *
-        (1 .+ (ell_eff / lknee[iν]) .^ αknee[iν]) .* ell_fact
+        (1 .+ (ell_eff / lknee[iν]) .^ αknee[iν]) .* ell_fact .*
+        bPl.(ell_eff, σ[iν]) .^ -2
 end
 
 # %% Compute covariance matrices of the foreground EE and BB
@@ -259,12 +260,10 @@ for irz = 1:nrz
             loglike_beta(nij[:, :, jb], A(x), cij[:, :, jb]) for jb = 1:nbands
         ) # -log(likelihood) to minimise by `optimize`
     ceij, cbij = zeros(nν, nν, nbands), zeros(nν, nν, nbands)
-    for ib = 1:nbands, iν = 1:nν, jν = iν:nν
-        bli, blj = bPl(ell_eff[ib], σ[iν]), bPl(ell_eff[ib], σ[jν])
-        σsmo = smooth_FWHM * π / 180 / sqrt(8 * log(2))
-        bl2 = bPl(ell_eff[ib], σsmo)^2
-        ceij[iν, jν, ib] = ce1[iν, jν, ib] * bl2 / bli / blj
-        cbij[iν, jν, ib] = cb1[iν, jν, ib] * bl2 / bli / blj
+    σsmo = smooth_FWHM * π / 180 / sqrt(8 * log(2))
+    for ib = 1:nbands
+        ceij[:, :, ib] = ce1[:, :, ib] * bPl(ell_eff[ib], σsmo)^2
+        cbij[:, :, ib] = cb1[:, :, ib] * bPl(ell_eff[ib], σsmo)^2
     end
     res = optimize(x -> func_sum(x, cbij), β0)
     if showβ
