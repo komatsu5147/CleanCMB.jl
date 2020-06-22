@@ -1,4 +1,5 @@
 using CleanCMB
+using Healpix
 using Optim, LinearAlgebra
 using Printf, CSV
 using Mmap
@@ -28,6 +29,12 @@ lknee = [30, 30, 50, 50, 70, 100, 700, 700, 700]
 αknee = [-2.4, -2.4, -2.5, -3, -3, -3, -1.4, -1.4, -1.4]
 # polarisation beam, Eq.(5.8) of Ng & Liu, Int.J.Mod.Phys.D, 8, 61 (1999)
 bPl(ℓ, σb) = ifelse(ℓ >= 2, exp(-(ℓ * (ℓ + 1) - 4) * σb^2 / 2), 0)
+# %% Read in the hits map and calculate fsky need for the likelihood
+nhitsfile = "data/nhits_SAT_r7.FITS"
+nhits = readMapFromFITS(nhitsfile, 1, Float64)
+nside = nhits.resolution.nside
+nhits /= maximum(nhits)
+fsky = mean(nhits)^2 / mean(nhits .^ 2)
 # %% Read in binned theory power spectra
 clt_th = CSV.read("tensor_eebb_binned.csv")
 cls_th = CSV.read("scalar_eebb_binned.csv")
@@ -63,7 +70,8 @@ for irz = 1:nrz
     )] # Frequency response matrix
     # For ℓ > ℓswitch: Apply parametric maximum likelihood method using a smoothed covariance matrix.
     func_sum(x, cij) =
-        -lnlike_fgprior(x) - sum(
+        -lnlike_fgprior(x) -
+        fsky * sum(
             (2 * ell_eff[jb] + 1) *
             loglike_beta(nij[kν, kν, jb], A(x), cij[kν, kν, jb])
             for jb = 1:nbands
@@ -91,6 +99,7 @@ for irz = 1:nrz
         for ib = 1:maximum(iib)
             func(x, cij) =
                 -lnlike_fgprior(x) -
+                fsky *
                 (2 * ell_eff[ib] + 1) *
                 loglike_beta(nij[kν, kν, ib], A(x), cij[kν, kν, ib])
             res = optimize(x -> func(x, cov1), β0)

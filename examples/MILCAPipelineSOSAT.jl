@@ -254,7 +254,7 @@ for irz = 1:nrz
     A(x) = [ones(nν) synch.(ν, βs = x[1]) dust1.(ν, βd = x[2])] # Frequency response matrix
     # For ℓ > ℓswitch: Apply parametric maximum likelihood method using a smoothed covariance matrix.
     func_sum(x, cij) =
-        -sum(
+        -fsky * sum(
             (2 * ell_eff[jb] + 1) *
             loglike_beta(nij[:, :, jb], A(x), cij[:, :, jb]) for jb = 1:nbands
         ) # -log(likelihood) to minimise by `optimize`
@@ -292,7 +292,8 @@ for irz = 1:nrz
     if iib ≠ []
         for ib = 1:maximum(iib)
             func(x, cij) =
-                -(2 * ell_eff[ib] + 1) *
+                -fsky *
+                (2 * ell_eff[ib] + 1) *
                 loglike_beta(nij[:, :, ib], A(x), cij[:, :, ib])
             res = optimize(x -> func(x, cb1), β0)
             #@show res
