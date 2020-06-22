@@ -105,11 +105,11 @@ Here we provide example codes for *pipelines*, which do everything from generati
     7. Calculate weights using `milca_weights()` with the best-fitting `βs` and `βd`, and calculate power spectra of the clean CMB maps using `ilc_clean_cij()`.
 
   - More detail of the procedure:
-    - The code finds the best-fitting `βs` and `βd` for each band-power at multipoles below the "switching" multipole, `ℓ ≤ ℓswitch` (the default value is `ℓswitch = 50`). This may better handle complex foreground properties on large angular scales.
-    - For higher multipoles, the code finds the global `βs` and `βd` using the covariance matrix smoothed to a given resolution specified by `smooth_FWHM` (in units of degrees; the default value is `smooth_FWHM = 3`). This is equivalent to finding `βs` and `βd` on smoothed maps.
+    - The code finds the best-fitting `βs` and `βd` for each band-power at multipoles below the "switching" multipole, `ℓ ≤ ℓswitch` (the default value is `ℓswitch = 30`). This may better handle complex foreground properties on large angular scales.
+    - For higher multipoles, the code finds the global `βs` and `βd` using the covariance matrix smoothed to a common resolution specified by `smooth_FWHM` (in units of degrees; the default value is `smooth_FWHM = 0.5`). This is equivalent to finding `βs` and `βd` on smoothed maps with the common resolution.
   - For your reference, the results from 300 realisations starting with the initial seed of `5147` are given in [examples/results/milca_results_sosat_300sims_seed5147.csv](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/results/milca_results_sosat_300sims_seed5147.csv). You can compute the mean and standard deviation of the tensor-to-scalar ratios. You should find, for 30 < ℓ < 260:
-      - Without FG marginalisation: r = (1.7 ± 2.9) x 10<sup>-3</sup>
-      - With marginalisation: r = (-0.8 ± 4.3) x 10<sup>-3</sup>
+      - Without FG marginalisation: r = (1.2 ± 2.7) x 10<sup>-3</sup>
+      - With marginalisation: r = (-0.8 ± 5.1) x 10<sup>-3</sup>
 
 - [examples/ILCPipelineSOSATCCATp.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSATCCATp.jl)
   - Same as [examples/ILCPipelineSOSAT.jl](https://github.com/komatsu5147/CleanCMB.jl/tree/master/examples/ILCPipelineSOSAT.jl), but add simulated data of the [CCAT-prime](https://www.ccatobservatory.org) at 350, 410, and 850 GHz with specifications given in Table 1 of [Choi et al., JLTP, 199, 1089 (2020)](https://link.springer.com/article/10.1007/s10909-020-02428-z).
