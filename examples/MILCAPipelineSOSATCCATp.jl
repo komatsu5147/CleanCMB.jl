@@ -99,6 +99,7 @@ for iν = 1:nν
 end
 
 # %% Setup NaMaster for the power spectrum analysis on a partial sky
+Δℓ = 10 # multipole binning size
 maskfile = "data/mask_apodized_r7.fits"
 include("setup_namaster.jl")
 # The theory power spectrum must be binned into bandpowers in the same manner the data has.
@@ -262,7 +263,9 @@ for irz = 1:nrz
     # For ℓ > ℓswitch: Apply parametric maximum likelihood method using a smoothed covariance matrix.
     func_sum(x, cij) =
         -lnlike_fgprior(x) -
-        fsky * sum(
+        fsky *
+        Δℓ *
+        sum(
             (2 * ell_eff[jb] + 1) *
             loglike_beta(nij[:, :, jb], A(x), cij[:, :, jb]) for jb = 1:nbands
         ) # -log(likelihood) to minimise by `optimize`
@@ -303,7 +306,9 @@ for irz = 1:nrz
     )] # Frequency response matrix
     func_sumSO(x, cij) =
         -lnlike_fgprior(x) -
-        fsky * sum(
+        fsky *
+        Δℓ *
+        sum(
             (2 * ell_eff[jb] + 1) * loglike_beta(
                 nij[1:nνSO, 1:nνSO, jb],
                 ASO(x),
@@ -334,6 +339,7 @@ for irz = 1:nrz
             func(x, cij) =
                 -lnlike_fgprior(x) -
                 fsky *
+                Δℓ *
                 (2 * ell_eff[ib] + 1) *
                 loglike_beta(nij[:, :, ib], A(x), cij[:, :, ib])
             res = optimize(x -> func(x, cb1), β0)
@@ -356,6 +362,7 @@ for irz = 1:nrz
             funcSO(x, cij) =
                 -lnlike_fgprior(x) -
                 fsky *
+                Δℓ *
                 (2 * ell_eff[ib] + 1) *
                 loglike_beta(
                     nij[1:nνSO, 1:nνSO, ib],

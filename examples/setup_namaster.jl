@@ -4,8 +4,8 @@ nmt = pyimport("pymaster")
 # Read in and apodize mask (C^2 apodization, 10 degrees)
 m = readMapFromFITS(maskfile, 1, Float64)
 mask = nmt.mask_apodization(m.pixels, 10.0, apotype = "C2")
-# Create binning scheme. We will use 10 multipoles per bandpower.
-b = nmt.NmtBin.from_nside_linear(nside, 10, is_Dell = true)
+# Create binning scheme. We will use Δℓ multipoles per bandpower.
+b = nmt.NmtBin.from_nside_linear(nside, Δℓ, is_Dell = true)
 # Array with effective multipole per bandpower
 ell_eff = b.get_effective_ells()
 nbands = b.get_n_bands()

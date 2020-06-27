@@ -9,6 +9,7 @@ using Tables
 nrz = 10
 ℓmin, ℓmax = 30, 260 # ℓ range for fitting
 Alens = 1
+Δℓ = 10 # multipole binning size
 # %% Foreground cleaning parameters
 showβ = true # Show the fitted foreground parameters (for the smoothed covariance)?
 β0 = βs0, βd0, Td0 = [-3.0, 1.6, 19.6] # starting foreground parameters for minimisation of -log(likelihood) by `res = optimize(func, [βs0, βd0, Td0])`
@@ -41,7 +42,7 @@ cls_th = CSV.read("scalar_eebb_binned.csv")
 ell_eff = clt_th.leff
 nbands = length(ell_eff)
 rclass = 0.01
-# %% Read in covariance matrices and perform ILC
+# %% Read in covariance matrices and perform parametric maxiimum likelihood fitting
 io = open("cov_bb_foreg.dat", "r")
 cov3 = Mmap.mmap(io, Array{Float64,3}, (nν, nν, nbands))
 close(io)
@@ -71,7 +72,9 @@ for irz = 1:nrz
     # For ℓ > ℓswitch: Apply parametric maximum likelihood method using a smoothed covariance matrix.
     func_sum(x, cij) =
         -lnlike_fgprior(x) -
-        fsky * sum(
+        fsky *
+        Δℓ *
+        sum(
             (2 * ell_eff[jb] + 1) *
             loglike_beta(nij[kν, kν, jb], A(x), cij[kν, kν, jb])
             for jb = 1:nbands

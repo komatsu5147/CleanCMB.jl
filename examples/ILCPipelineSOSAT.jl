@@ -88,6 +88,7 @@ for iν = 1:nν
 end
 
 # %% Setup NaMaster for the power spectrum analysis on a partial sky
+Δℓ = 10 # multipole binning size
 maskfile = "data/mask_apodized_r7.fits"
 include("setup_namaster.jl")
 # The theory power spectrum must be binned into bandpowers in the same manner the data has.
