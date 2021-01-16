@@ -3,7 +3,7 @@ using PyCall
 using Random, Statistics
 using Printf, Tables, CSV
 # %% Simulation parameters
-nrz = 10 # How many realisations?
+nrz = 300 # How many realisations?
 Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
 rsim = 0 # Tensor-to-scalar ratio used for the simulation
 Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
@@ -12,7 +12,7 @@ Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
 # Reference: Simons Observatory Collaboration, JCAP, 02, 056 (2019), Table 1.
 # Reference: CCAT-prime Collaboration, J.Low Temp.Phys., 199, 1089 (2020), Table 1.
 ν = [27, 39, 93, 145, 225, 280, 350, 410, 850] # in GHz
-nν = length(ν)
+nν, nνSO = length(ν), 6
 FWHM = [91, 63, 30, 17, 11, 9, 0.58, 0.5, 0.23] # in arcmin
 σ = FWHM * π / 10800 / √(8 * log(2)) # in radians
 uKarcmin = [35, 21, 2.6, 3.3, 6.3, 16, 105, 372, 5.7e5] # in μK arcmin (for temperature; x√2 for pol)
@@ -82,6 +82,7 @@ for iν = 1:nν
 end
 
 # %% Setup NaMaster for the power spectrum analysis on a partial sky
+Δℓ = 10 # multipole binning size
 maskfile = "data/mask_apodized_r7.fits"
 include("setup_namaster.jl")
 # The theory power spectrum must be binned into bandpowers in the same manner the data has.
@@ -205,8 +206,11 @@ for irz = 1:nrz
             alm_info,
             SHARP_DP,
         )
-        n_q .*= weight
-        n_u .*= weight
+        # Inhomogenous noise for SO-SAT and homogeneous noise for CCAT-prime
+        if iν <= nνSO
+            n_q .*= weight
+            n_u .*= weight
+        end
         ## Create NaMaster fields for the pseudo-Cℓ
         # f1: foreground + CMB + noise
         push!(

@@ -10,7 +10,7 @@ using Tables, CSV
 showresults = true
 
 # %% Simulation parameters
-nrz = 10 # How many realisations?
+nrz = 300 # How many realisations?
 Random.seed!(5147) # Initial random number seed. Useful if you need reproducible sequence
 rsim = 0 # Tensor-to-scalar ratio used for the simulation
 Alens = 1 # Lensing power spectrum amplitude (Alens = 1 for the fiducial)
@@ -224,8 +224,11 @@ for irz = 1:nrz
             alm_info,
             SHARP_DP,
         )
-        n_q .*= weight
-        n_u .*= weight
+        # Inhomogenous noise for SO-SAT and homogeneous noise for CCAT-prime
+        if iν <= nνSO
+            n_q .*= weight
+            n_u .*= weight
+        end
         ## Create NaMaster fields for the pseudo-Cℓ
         # f1: foreground + CMB + noise
         push!(

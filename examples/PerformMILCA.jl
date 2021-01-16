@@ -1,12 +1,12 @@
 using CleanCMB
 using Healpix
 using Optim, LinearAlgebra
-using Printf, CSV
+using Printf, CSV, DataFrames
 using Mmap
 using Statistics, Plots
 using Tables
 # %% Simulation parameters
-nrz = 10
+nrz = 300
 ℓmin, ℓmax = 30, 260 # ℓ range for fitting
 Alens = 1
 Δℓ = 10 # multipole binning size
@@ -37,8 +37,8 @@ nside = nhits.resolution.nside
 nhits /= maximum(nhits)
 fsky = mean(nhits)^2 / mean(nhits .^ 2)
 # %% Read in binned theory power spectra
-clt_th = CSV.read("tensor_eebb_binned.csv")
-cls_th = CSV.read("scalar_eebb_binned.csv")
+clt_th = CSV.read("tensor_eebb_binned.csv", DataFrame)
+cls_th = CSV.read("scalar_eebb_binned.csv", DataFrame)
 ell_eff = clt_th.leff
 nbands = length(ell_eff)
 rclass = 0.01
