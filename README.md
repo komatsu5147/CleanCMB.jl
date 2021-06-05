@@ -2,6 +2,8 @@
 
 This package contains functions to enable extraction of clean maps of the cosmic microwave background (CMB). Some functions can be used to extract non-CMB astrophysical components as well.
 
+If you came here to reproduce the results in Section 6 of the CCAT-prime science forecast paper, please go to [ccatprime/sciencepaper/](https://github.com/komatsu5147/CleanCMB.jl/tree/master/ccatprime/sciencepaper).
+
 Different algorithms exist for extraction of clean maps of the CMB (as well as of astrophysical components). The package currently supports:
 
 - Internal Linear Combination (ILC) Method
@@ -129,4 +131,4 @@ Here we provide example codes for splitting the pipelines into two pieces: (1) G
 
 ## Acknowledgment
 
-Development of the functions provided in this package was supported in part by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany's Excellence Strategy - EXC-2094 - 390783311 and JSPS KAKENHI Grant Number JP15H05896. The Kavli IPMU is supported by World Premier International Research Center Initiative (WPI), MEXT, Japan.
+Development of the functions provided in this package was supported in part by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany's Excellence Strategy - EXC-2094 - 390783311 and JSPS KAKENHI Grant Number JP15H05896.
