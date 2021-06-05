@@ -9,7 +9,7 @@ dir = "../data"
 # %% Simulation parameters
 nrz = 1500
 ℓmin, ℓmax = 30, 260 # ℓ range for fitting
-ℓko = 60
+ℓko = 60 # remove information from ℓ<=ℓko
 Alens = 1
 Δℓ = 10 # multipole binning size
 # %% Foreground cleaning parameters

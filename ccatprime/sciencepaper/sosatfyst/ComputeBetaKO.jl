@@ -9,7 +9,7 @@ dir = "../data"
 # %% Simulation parameters
 nrz = 1500
 ℓmin, ℓmax = 30, 260 # ℓ range for fitting
-ℓko = 100
+ℓko = 60 # remove information from ℓ<=ℓko
 Alens = 1
 Δℓ = 10 # multipole binning size
 # %% Foreground cleaning parameters
@@ -111,4 +111,4 @@ for irz = 1:nrz
 end
 # %% Save to the file
 t = Tables.table([1:nrz βout[1,:] βout[2,:] βout[3,:]])
-CSV.write("beta_results_ko.csv", t, header = ["irz", "beta_s", "beta_d", "T_d"])
+CSV.write("beta_results_removelowell.csv", t, header = ["irz", "beta_s", "beta_d", "T_d"])
