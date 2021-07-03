@@ -2,7 +2,7 @@
 using Healpix
 using Statistics
 using Printf
-using FITSIO
+using CFITSIO
 ν = [27, 39, 93, 145, 225, 280, 350, 410, 850]  # in GHz
 nν = length(ν)
 nside = 128
@@ -10,8 +10,8 @@ for iν = 1:nν
     infile = @sprintf("map_equ_%03dghz_r8_nested_uKcmb.fits", ν[iν])
     fiin, fqin, fuin = (readMapFromFITS(infile, ic, Float32) for ic = 1:3)
     # Degrade and convert to RING order
-    q = Map{Float32,RingOrder}(nside)
-    u = Map{Float32,RingOrder}(nside)
+    q = HealpixMap{Float32,RingOrder}(nside)
+    u = HealpixMap{Float32,RingOrder}(nside)
     fact = Int((fiin.resolution.nside / nside)^2)
     for ip = 1:12*nside^2
         degrade = (ip-1)*fact+1:ip*fact
@@ -22,8 +22,8 @@ for iν = 1:nν
     outfile = @sprintf("map_d1s1_equ_%03dghz_r7_uKcmb_qu.fits", ν[iν])
     extname = "Archive Map Table"
     typechar = "E"
-    f = FITSIO.fits_create_file(outfile)
-    FITSIO.fits_create_binary_tbl(
+    f = CFITSIO.fits_create_file(outfile)
+    CFITSIO.fits_create_binary_tbl(
     f,
     0,
     [
@@ -34,5 +34,5 @@ for iν = 1:nν
     )
     saveToFITS(q, f, 1)
     saveToFITS(u, f, 2)
-    FITSIO.fits_close_file(f)
+    CFITSIO.fits_close_file(f)
 end

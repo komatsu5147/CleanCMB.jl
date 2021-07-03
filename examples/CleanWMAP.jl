@@ -22,7 +22,7 @@ end
 # %% Perform ILC to obtain a clean CMB from WMAP temperature maps
 Tbar = zeros(nν)
 cij = zeros(nν, nν)
-clean_map = Map{Float64,RingOrder}(nside)
+clean_map = HealpixMap{Float64,RingOrder}(nside)
 for N = 0:11 # loop over ILC regions 0-11
     set = (Int.(bit) .& 2^N) / 2^N # see https://lambda.gsfc.nasa.gov/product/map/dr5/ilc_map_get.cfm
     ip = findall(x -> x == 1, set)

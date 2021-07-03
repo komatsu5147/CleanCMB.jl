@@ -172,8 +172,8 @@ for irz = 1:nrz
     # Smooth CMB and create spherical harmonics coefficients of the noise
     celm, cblm = Alm{ComplexF64}(lmax, mmax), Alm{ComplexF64}(lmax, mmax)
     nelm, nblm = Alm{ComplexF64}(lmax, mmax), Alm{ComplexF64}(lmax, mmax)
-    c_q, c_u = Map{Float64,RingOrder}(nside), Map{Float64,RingOrder}(nside)
-    n_q, n_u = Map{Float64,RingOrder}(nside), Map{Float64,RingOrder}(nside)
+    c_q, c_u = HealpixMap{Float64,RingOrder}(nside), HealpixMap{Float64,RingOrder}(nside)
+    n_q, n_u = HealpixMap{Float64,RingOrder}(nside), HealpixMap{Float64,RingOrder}(nside)
     f1, f2 = [], [] # List of NaMaster fields
     for iν = 1:nν
         for l = 0:lmax
