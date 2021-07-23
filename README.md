@@ -2,7 +2,7 @@
 
 This package contains functions to enable extraction of clean maps of the cosmic microwave background (CMB). Some functions can be used to extract non-CMB astrophysical components as well.
 
-If you came here to reproduce the results in Section 6 of the science forecast paper for CCAT-prime's Prime-Cam on the [Fred Young Submillimeter Telescope (FYST)](https://www.ccatobservatory.org/index.cfm), please go to [ccatprime/sciencepaper/](https://github.com/komatsu5147/CleanCMB.jl/tree/master/ccatprime/sciencepaper).
+If you came here to reproduce the results in Section 6 of the [science forecast paper](https://arxiv.org/abs/2107.10364) for CCAT-prime's Prime-Cam on the [Fred Young Submillimeter Telescope (FYST)](https://www.ccatobservatory.org/index.cfm), please go to [ccatprime/sciencepaper/](https://github.com/komatsu5147/CleanCMB.jl/tree/master/ccatprime/sciencepaper).
 
 Different algorithms exist for extraction of clean maps of the CMB (as well as of astrophysical components). The package currently supports:
 
