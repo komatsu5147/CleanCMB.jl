@@ -11,6 +11,14 @@ Different algorithms exist for extraction of clean maps of the CMB (as well as o
 
 See [this note](https://github.com/komatsu5147/CleanCMB.jl/tree/master/note_on_ilc_vs_ml.pdf) for the relationship between them.
 
+## Installation
+
+From the Julia REPL, run
+```Julia
+using Pkg
+Pkg.add("https://github.com/komatsu5147/CleanCMB.jl")
+```
+
 ## Internal Linear Combination (ILC) Method
 - `ilc_weights(cij[, e, ℓid=3])`: return weights for the internal linear combination (ILC) method, following Equation (12) of [Tegmark et al., PRD, 68, 123523 (2003)](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.68.123523).
 - `cilc_weights(cij, a, b[, ℓid=3])`: return weights for the constrained internal linear combination (CILC) method for two components, following Equation (20) of [Remazeilles, et al., MNRAS, 410, 2481 (2011)](https://academic.oup.com/mnras/article/410/4/2481/1007333).
