@@ -16,7 +16,7 @@ See [this note](https://github.com/komatsu5147/CleanCMB.jl/tree/master/note_on_i
 From the Julia REPL, run
 ```Julia
 using Pkg
-Pkg.add("https://github.com/komatsu5147/CleanCMB.jl")
+Pkg.add(url="https://github.com/komatsu5147/CleanCMB.jl")
 ```
 
 ## Internal Linear Combination (ILC) Method
